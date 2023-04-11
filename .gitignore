@@ -4,8 +4,9 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.run
 
-### STS ###
+### STS ###  
 .apt_generated
 .classpath
 .factorypath
@@ -35,3 +36,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 설정 파일 ###
+application-secret.yaml
