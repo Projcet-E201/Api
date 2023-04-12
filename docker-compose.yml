@@ -9,6 +9,7 @@ services:
         PROFILE: "default"
     ports:
       - "8050:8050"
+      - "9090:9090"
     networks:
       - br_log
       - br_app
