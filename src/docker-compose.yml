@@ -1,0 +1,20 @@
+version: "3"
+services:
+  dev-back-blue:
+    container_name: tcp-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROFILE: "default"
+    ports:
+      - "8080:8080"
+    networks:
+      - br_log
+      - br_app
+
+networks:
+  br_log:
+    external: true
+  br_app:
+    external: true

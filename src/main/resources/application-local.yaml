@@ -1,24 +1,24 @@
-server:
-  port: 8080
-
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/trip?useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&serverTimezone=Asia/Seoul
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        show_sql: true
-
-logging:
-  level:
-    root: debug
-    org:
-      hibernate:
-        type:
-          descriptor:
-            sql: debug
+#server:
+#  port: 8080
+#
+#spring:
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mariadb://localhost:3306/trip?useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&serverTimezone=Asia/Seoul
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        show_sql: true
+#
+#logging:
+#  level:
+#    root: debug
+#    org:
+#      hibernate:
+#        type:
+#          descriptor:
+#            sql: debug
