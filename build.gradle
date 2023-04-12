@@ -31,8 +31,6 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 
 	runtimeOnly 'com.h2database:h2'
-
-	implementation 'org.apache.commons:commons-lang3:3.12.0'
 }
 
 tasks.named('test') {
