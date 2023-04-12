@@ -40,7 +40,7 @@ public class TcpServerConfiguration {
 		// TcpServer 인스턴스 생성
 		return TcpServer.create()
 			.host("0.0.0.0") // host
-			.port(5000) // port
+			.port(9090) // port
 			.doOnConnection(connectionConsumer) // 이전에 정의된 connectionConsumer 등록
 			.wiretap(true) // 디버깅에 사용할 유선 로깅 활성화
 			.bindNow(); // 서버를 지정된 IP주소 및 포트에 바인딩하고 연결 수신 시작.
