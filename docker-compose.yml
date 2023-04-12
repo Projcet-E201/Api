@@ -8,7 +8,7 @@ services:
       args:
         PROFILE: "default"
     ports:
-      - "8080:8080"
+      - "8050:8050"
     networks:
       - br_log
       - br_app
