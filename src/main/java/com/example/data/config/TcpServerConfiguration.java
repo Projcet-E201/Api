@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import com.example.data.util.constants.TcpInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.netty.Connection;
 import reactor.netty.DisposableServer;
 import reactor.netty.tcp.TcpServer;
@@ -38,20 +39,18 @@ public class TcpServerConfiguration {
 			.asByteArray()
 			// 수신된 바이트 배열을 UTF-8로 변환
 			.map(bytes -> new String(bytes, StandardCharsets.UTF_8))
-			// 개행 문자가 나타날 때까지 데이터를 누적한다.
-			.windowUntil(str -> str.endsWith("\n"))
-			// 누적된 데이터를 하나의 문자열로 변경해준다.
-			.flatMap(window -> window.reduce((s1, s2) -> s1 + s2))
-			.bufferTimeout(5, Duration.ofSeconds(5)) // Buffer the data for 5 seconds
+			.flatMap(data -> Flux.fromArray(data.split("\n")))
 			// 수신된 데이터의 스트림 구독
-			.subscribe(dataList  -> {
-				for (String data : dataList) {
-					String[] split = data.split(" ");
-					String sensorType = split[0];
-					long sensorId = Long.parseLong(split[1]);
-					int value = Integer.parseInt(split[2]);
-					System.out.println(value);
-					log.info("{} {} {}", sensorType, sensorId, value);
+			.subscribe(message -> {
+				if (!message.isEmpty()) {
+					String[] dataPoints = message.split("\\s+");
+					for (int i = 0; i < dataPoints.length; i += 3) {
+						String sensorType = dataPoints[i];
+						long sensorId = Long.parseLong(dataPoints[i + 1]);
+						int value = Integer.parseInt(dataPoints[i + 2]);
+						log.info("{} {} {}", sensorType, sensorId, value);
+						// Add your logic to process the data here
+					}
 				}
 			});
 
