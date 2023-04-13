@@ -17,7 +17,7 @@ import lombok.ToString;
 @ToString
 @Builder
 @Entity
-public class Sensor extends BaseEntity {
+public class Vacuum extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
