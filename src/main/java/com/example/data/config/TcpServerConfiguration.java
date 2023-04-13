@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -14,11 +15,13 @@ import org.springframework.context.annotation.Configuration;
 
 import com.example.data.util.constants.TcpInfo;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.netty.Connection;
 import reactor.netty.DisposableServer;
 import reactor.netty.tcp.TcpServer;
 
 @Configuration
+@Slf4j
 public class TcpServerConfiguration {
 
 	private static final DateTimeFormatter FILE_NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -40,14 +43,17 @@ public class TcpServerConfiguration {
 			.windowUntil(str -> str.endsWith("\n"))
 			// 누적된 데이터를 하나의 문자열로 변경해준다.
 			.flatMap(window -> window.reduce((s1, s2) -> s1 + s2))
+			.bufferTimeout(5, Duration.ofSeconds(5)) // Buffer the data for 5 seconds
 			// 수신된 데이터의 스트림 구독
-			.subscribe(data -> {
-				String[] split = data.split(" ");
-				System.out.println(split.length);
-
-				// To
-
-				// Process the received data as needed
+			.subscribe(dataList  -> {
+				for (String data : dataList) {
+					String[] split = data.split(" ");
+					String sensorType = split[0];
+					long sensorId = Long.parseLong(split[1]);
+					int value = Integer.parseInt(split[2]);
+					System.out.println(value);
+					log.info("{} {} {}", sensorType, sensorId, value);
+				}
 			});
 
 		// TcpServer 인스턴스 생성
