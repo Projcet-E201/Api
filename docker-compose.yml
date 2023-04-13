@@ -6,10 +6,12 @@ services:
       context: src
       dockerfile: Dockerfile
       args:
-        PROFILE: "default"
+        PROFILE: "prod"
     ports:
       - "8050:8050"
       - "9090:9090"
+      - "9091:9091"
+      - "9092:9092"
     networks:
       - br_log
       - br_app

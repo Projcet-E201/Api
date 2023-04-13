@@ -1,11 +1,14 @@
 package com.example.data.entity.data;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+
+import com.example.data.entity.global.BaseEntity;
+import com.sun.istack.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,29 +16,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@ToString
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
 @Entity
-public class SensorInfo {
+public class Motor extends BaseEntity {
 
-	/* 센서 고유번호 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	/* 센서 제품코드 */
-	@Column
-	private String sensorId;
+	/* 센서 상세정보 */
+	@NotNull
+	@OneToOne(fetch = FetchType.LAZY)
+	private SensorInfo sensorInfo;
 
-	/* 마지막 교체일 */
-	@Column
-	private String lastDate;
-
-	/* 동작 여부 */
-	@Column
-	private Boolean working;
-
+	@NotNull
+	private Integer value;
 }
