@@ -1,7 +1,9 @@
 package com.example.data.entity.data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,8 +19,20 @@ import lombok.ToString;
 @Entity
 public class SensorInfo {
 
+	/* 센서 고유번호 */
 	@Id
-	private Long id;
+	private String id;
 
+	/* 센서 제품코드 */
+	@Column
+	private String sensorId;
+
+	/* 마지막 교체일 */
+	@Column
+	private String lastDate;
+
+	/* 동작 여부 */
+	@Column
+	private Boolean working;
 
 }
