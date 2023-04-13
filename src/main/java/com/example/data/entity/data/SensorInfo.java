@@ -27,6 +27,10 @@ public class SensorInfo {
 	@Column
 	private String sensorId;
 
+	/* 센서 타입 */
+	@Column
+	private String type;
+
 	/* 마지막 교체일 */
 	@Column
 	private String lastDate;
