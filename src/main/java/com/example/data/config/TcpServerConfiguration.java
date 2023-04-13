@@ -24,7 +24,6 @@ public class TcpServerConfiguration {
 	private static final DateTimeFormatter FILE_NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 	private static final String OUTPUT_DIRECTORY = "server_directory/";
 
-
 	@Bean
 	public DisposableServer sensorServer() {
 
@@ -58,8 +57,29 @@ public class TcpServerConfiguration {
 			.wiretap(true) // 디버깅에 사용할 유선 로깅 활성화
 			.bindNow(); // 서버를 지정된 IP주소 및 포트에 바인딩하고 연결 수신 시작.
 	}
-
-
+	@Bean
+	public DisposableServer imgServer() {
+		// Define a consumer to handle incoming Connection (client) objects
+		Consumer<Connection> connectionConsumer = connection -> connection
+				.inbound()
+				.receive()
+				.asByteArray()
+				.subscribe(data -> {
+					try {
+						// Save received data as an image file
+						saveReceivedImageFile(data);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+		// Create TcpServer instance
+		return TcpServer.create()
+				.host(TcpInfo.IMAGE_IP) // host
+				.port(TcpInfo.IMAGE_PORT) // port
+				.doOnConnection(connectionConsumer) // Register previously defined connectionConsumer
+				.wiretap(true) // Enable wire logging for debugging
+				.bindNow(); // Bind the server to the specified IP address and port, and start listening for connections.
+	}
 	@Bean
 	public DisposableServer analogServer() {
 		// Define a consumer to handle incoming Connection (client) objects
@@ -85,7 +105,16 @@ public class TcpServerConfiguration {
 			.wiretap(true) // 디버깅에 사용할 유선 로깅 활성화
 			.bindNow(); // 서버를 지정된 IP주소 및 포트에 바인딩하고 연결 수신 시작.
 	}
+	private void saveReceivedImageFile(byte[] data) throws IOException {
+		String fileName = LocalDateTime.now().format(FILE_NAME_FORMATTER) + ".jpg";
+		File outputFile = new File(OUTPUT_DIRECTORY, fileName);
+		Files.createDirectories(outputFile.toPath().getParent());
 
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			fileOutputStream.write(data);
+		}
+		System.out.println("Received file: " + outputFile.getAbsolutePath());
+	}
 	private void saveReceivedZipFile(List<byte[]> data) throws IOException {
 		String fileName = LocalDateTime.now().format(FILE_NAME_FORMATTER) + ".zip";
 		File outputFile = new File(OUTPUT_DIRECTORY, fileName);
