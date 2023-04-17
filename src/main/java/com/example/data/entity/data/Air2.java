@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
 @ToString
 @Builder
@@ -29,5 +29,5 @@ public class Air2 extends BaseEntity {
     private SensorInfo sensorInfo;
 
     @NotNull
-    private Double value = 0.0;
+    private Double value;
 }

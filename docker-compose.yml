@@ -3,7 +3,7 @@ services:
   dev-back-blue:
     container_name: tcp-server
     build:
-      context: src
+      context: .
       dockerfile: Dockerfile
       args:
         PROFILE: "prod"

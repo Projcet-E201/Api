@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package machine_state;
+
+message MachineState {
+  repeated bool bool_values = 1;
+  repeated double double_values = 2;
+  repeated int32 int_values = 3;
+  repeated string string_values = 4;
+}
