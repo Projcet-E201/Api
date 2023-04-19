@@ -1,10 +1,10 @@
-package com.example.data.netty.config;
+package com.example.data.netty.global.config;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import com.example.data.netty.socket.NettyServerSocket;
+import com.example.data.netty.data.DataNettyServerSocket;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApplicationStartupTask implements ApplicationListener<ApplicationReadyEvent> {
 
-	private final NettyServerSocket nettyServerSocket;
+	private final DataNettyServerSocket dataNettyServerSocket;
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
-		nettyServerSocket.start();
+		dataNettyServerSocket.start();
 	}
 }

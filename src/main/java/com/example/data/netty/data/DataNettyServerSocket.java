@@ -1,4 +1,4 @@
-package com.example.data.netty.socket;
+package com.example.data.netty.data;
 
 import java.net.InetSocketAddress;
 
@@ -9,14 +9,13 @@ import org.springframework.stereotype.Component;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class NettyServerSocket {
+public class DataNettyServerSocket {
 	private final ServerBootstrap serverBootstrap;
 	private final InetSocketAddress tcpPort;
 	private Channel serverChannel;

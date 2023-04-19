@@ -1,4 +1,4 @@
-package com.example.data.netty.config;
+package com.example.data.netty.global.config;
 
 import java.net.InetSocketAddress;
 
@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.example.data.netty.socket.NettyChannelInitializer;
+import com.example.data.netty.global.socket.NettyChannelInitializer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -21,8 +21,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NettyConfiguration {
 
-	@Value("${netty.port}")
-	private int port;
+	@Value("${netty.data-port}")
+	private int dataPort;
+	@Value("${netty.analog-port}")
+	private int analogPort;
+	@Value("${netty.image-port}")
+	private int ImagePort;
 	@Value("${netty.boss-count}")
 	private int bossCount;
 	@Value("${netty.worker-count}")
@@ -36,7 +40,7 @@ public class NettyConfiguration {
 	// 도메인 이름으로 객체 생성 가능
 	@Bean
 	public InetSocketAddress inetSocketAddress() {
-		return new InetSocketAddress(port);
+		return new InetSocketAddress(dataPort);
 	}
 
 	@Bean

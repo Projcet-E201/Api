@@ -1,4 +1,4 @@
-package com.example.data.netty.decoder;
+package com.example.data.netty.global.decoder;
 
 import java.util.List;
 import io.netty.buffer.ByteBuf;

@@ -2,7 +2,9 @@ server:
   port: 8090
 
 netty:
-  port: 9999
+  data-port: 9997
+  analog-port: 9998
+  image-port: 9999
   boss-count: 5
   worker-count: 5
   keep-alive: true

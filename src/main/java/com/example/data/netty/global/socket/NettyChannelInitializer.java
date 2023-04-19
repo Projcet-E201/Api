@@ -1,8 +1,8 @@
-package com.example.data.netty.socket;
+package com.example.data.netty.global.socket;
 
 import org.springframework.stereotype.Component;
 
-import com.example.data.netty.handler.NettyInboundHandler;
+import com.example.data.netty.global.handler.NettyInboundHandler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -20,7 +20,7 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 	private final NettyInboundHandler nettyInboundHandler;
 
 	@Override
-	protected void initChannel(SocketChannel socketChannel) throws Exception {
+	protected void initChannel(SocketChannel socketChannel) {
 		ChannelPipeline pipeline = socketChannel.pipeline();
 
 		ByteBuf delimiter = Unpooled.copiedBuffer("\n", CharsetUtil.UTF_8);
