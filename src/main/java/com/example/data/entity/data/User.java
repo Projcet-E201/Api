@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
@@ -15,14 +15,18 @@ import java.util.List;
 public class User {
 
     /* ID 또는 사원번호 */
-    @Id
-    private String id;
+    @Id @GeneratedValue
+    @Column(name="user_id")
+    private Long id;
 
     @Column
     private String password;
 
     @Column
     private String name;
+
+    @Column(unique = true)
+    private String email;
 
     /* 권한 */
     @Column
