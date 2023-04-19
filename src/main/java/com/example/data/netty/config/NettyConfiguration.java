@@ -21,8 +21,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NettyConfiguration {
 
-	@Value("${netty.host}")
-	private String host;
 	@Value("${netty.port}")
 	private int port;
 	@Value("${netty.boss-count}")
@@ -34,10 +32,17 @@ public class NettyConfiguration {
 	@Value("${netty.backlog}")
 	private int backlog;
 
+	// IP 소켓 주소(IP 주소, Port 번호)를 구현
+	// 도메인 이름으로 객체 생성 가능
+	@Bean
+	public InetSocketAddress inetSocketAddress() {
+		return new InetSocketAddress(port);
+	}
+
 	@Bean
 	public ServerBootstrap serverBootstrap(NettyChannelInitializer nettyChannelInitializer) {
-		// boss: incoming connection을 수락하고, 수락한 connection을 worker에게 등록(register)
-		// worker: boss가 수락한 연결의 트래픽 관리
+		// boss: incoming connection 수락하고, 수락한 connection을 worker에게 등록(register)
+		// worker: boss 수락한 연결의 트래픽 관리
 		NioEventLoopGroup bossGroup = new NioEventLoopGroup(bossCount);
 		NioEventLoopGroup workerGroup = new NioEventLoopGroup(workerCount);
 
@@ -54,10 +59,4 @@ public class NettyConfiguration {
 		return b;
 	}
 
-	// IP 소켓 주소(IP 주소, Port 번호)를 구현
-	// 도메인 이름으로 객체 생성 가능
-	@Bean
-	public InetSocketAddress inetSocketAddress() {
-		return new InetSocketAddress(host, port);
-	}
 }

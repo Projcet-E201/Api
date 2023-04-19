@@ -3,11 +3,8 @@ package com.example.data.netty.handler;
 import org.springframework.stereotype.Component;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @ChannelHandler.Sharable
 @RequiredArgsConstructor
-public class NettyHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class NettyInboundHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -34,13 +31,13 @@ public class NettyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
 		String receivedData = msg.toString(CharsetUtil.UTF_8);
-		System.out.println("Received data: " + receivedData);
+		log.info("Received data: {}", receivedData);
 	}
 
 	// 예외 발생시
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		cause.printStackTrace();
-		ctx.close();
+		// ctx.close();
 	}
 }
