@@ -23,6 +23,7 @@ public class Air2 extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     /* 센서 상세정보 */
     @NotNull
     @OneToOne(fetch = FetchType.LAZY)

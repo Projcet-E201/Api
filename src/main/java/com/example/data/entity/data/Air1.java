@@ -11,17 +11,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.Instant;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Builder
 @Entity
-public class Air1 extends BaseEntity {
+public class Air1 {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /*  시간 데이터  */
+//    @Column(name = "time")
+//    @org.springframework.data.annotation.Id
+//    private Instant time;
 
     /* 센서 상세정보 */
     @NotNull
