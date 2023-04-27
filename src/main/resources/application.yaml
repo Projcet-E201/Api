@@ -2,12 +2,10 @@ spring:
   profiles:
     active: local, secret
 
-  data:
-    influxdb:
-      url: http://3.18.112.41:8086
-      username: sems
-      password: sems201
-      database: data
+  influxdb:
+    url: http://k8e2011.p.ssafy.io:8086
+    #    url: http://localhost:8086
+
 
   jpa:
     properties:
