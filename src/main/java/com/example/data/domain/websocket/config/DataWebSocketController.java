@@ -1,5 +1,6 @@
 package com.example.data.domain.websocket.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.QueryApi;
@@ -24,13 +25,16 @@ public class DataWebSocketController {
     @MessageMapping("/post")
     @SendTo("/client/get")
     public String testcaseAll(@RequestBody String data) throws Exception {
-        QueryApi queryApi = influxDBClient.getQueryApi();
-        String org = "semse";
         String query = "from(bucket: \"three day\") |> range(start: -1m)" +
                 " |> filter(fn: (r) => r[\"_measurement\"] == \"SERVER1\")" +
                 " |> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")";
-        ;
-        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, org);
+        String json = queryToJson(query);
+        return json;
+    }
+
+    private String queryToJson(String query) throws JsonProcessingException {
+        QueryApi queryApi = influxDBClient.getQueryApi();
+        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
@@ -68,9 +72,8 @@ public class DataWebSocketController {
         Collections.sort(recordsList, timeNameComparator);
 
         String json = mapper.writeValueAsString(recordsList);
-        System.out.println("json = " + json);
-
-        return json;
+//        System.out.println("json = " + json);
+        return json
     }
 
     private Object timeToSecond(Object timestamp) {
@@ -81,7 +84,7 @@ public class DataWebSocketController {
         return finalValue;
     }
 
-    public class NameComparator implements Comparator<String> {
+    private class NameComparator implements Comparator<String> {
         @Override
         public int compare(String s1, String s2) {
             int len1 = s1.length(), len2 = s2.length();
@@ -111,15 +114,6 @@ public class DataWebSocketController {
             }
             return s1.compareTo(s2);
         }
-    }
-
-
-    @MessageMapping("/get")
-    @SendTo("/post")
-    public String test1() {
-        String test = "data 보내는중2";
-        System.out.println("test = " + test);
-        return test;
     }
 
 }
