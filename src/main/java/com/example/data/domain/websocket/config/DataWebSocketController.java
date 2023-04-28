@@ -73,7 +73,7 @@ public class DataWebSocketController {
 
         String json = mapper.writeValueAsString(recordsList);
 //        System.out.println("json = " + json);
-        return json
+        return json;
     }
 
     private Object timeToSecond(Object timestamp) {
