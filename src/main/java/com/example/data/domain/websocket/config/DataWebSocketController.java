@@ -24,8 +24,9 @@ public class DataWebSocketController {
     public String testcaseAll(@RequestBody String data) throws Exception{
         QueryApi queryApi = influxDBClient.getQueryApi();
         String org = "semse";
-        String query = "from(bucket: \"day\") |> range(start: -1d)" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"SERVER1\")";
+        String query = "from(bucket: \"three day\") |> range(start: -1m)" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"SERVER1\")" +
+                " |> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")";;
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, org);
         List<Map<String, Object>> recordsList = new ArrayList<>();
         for (FluxTable table : tables) {
