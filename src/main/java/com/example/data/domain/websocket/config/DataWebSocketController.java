@@ -45,15 +45,14 @@ public class DataWebSocketController {
         // 기기 각각의 최신값의 평균을 구하는 코드
         List<Map<String, Object>> out_list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        // CLIENT별로 for문을 보내야 할듯? 일단 지금은 1밖에 없으니깐 이까지 구축하기!
         for (int i = 1; i < 2; i++) {
             String client = "CLIENT" + String.valueOf(i);;
             Map<String, Object> out_dic = new HashMap<>();
-            out_dic.put("name", "CLIENT1");
+            out_dic.put("name", client);
             List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
             List<Object> new_list = new ArrayList<>();
             for (String sensor : sensors) {
-                String query = "from(bucket: \"CLIENT1\") |> range(start: -1h)" +
+                String query = "from(bucket: \""+ client +"\") |> range(start: -1h)" +
                         " |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
                         " |> last()" +
                         " |> group(columns: [\"name\"])" +
