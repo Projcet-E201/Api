@@ -26,8 +26,12 @@ public class DataWebSocketController {
     public String testcase(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 //        List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
-        String query = "from(bucket: \""+ client +"\") |> range(start: -1m)" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
+        String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+                " |> group(columns: [\"name\"])" +
+                " |> sort(columns: [\"_time\"], desc: true)" +
+                " |> first()" +
+                " |> map(fn: (r) => ({ name: r[\"name\"], date: r[\"_time\"], max_value: r[\"_value\"], min_value: r[\"_value\"] }))";
 //        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         String json = queryClientToJson(query);
         return json;
@@ -48,7 +52,7 @@ public class DataWebSocketController {
         // 기기 각각의 최신값의 평균을 구하는 코드
         List<Map<String, Object>> out_list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int i = 1; i < 2; i++) {
+        for (int i = 1; i < 3; i++) {
             String client = "CLIENT" + String.valueOf(i);;
             Map<String, Object> out_dic = new HashMap<>();
             out_dic.put("name", client);
