@@ -3,7 +3,6 @@ package com.example.data.domain.websocket.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.QueryApi;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +23,74 @@ public class DataWebSocketController {
 
     @MessageMapping("/post")
     @SendTo("/client/get")
-    public String testcaseAll(@RequestBody String data) throws Exception {
-        String query = "from(bucket: \"three day\") |> range(start: -1m)" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"SERVER1\")" +
-                " |> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")";
-        String json = queryToJson(query);
+    public String testcase(@RequestBody String data) throws Exception {
+        String query = "from(bucket: \"CLIENT1\") |> range(start: -1m)" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
+        String json = queryClientToJson(query);
+        return json;
+    }
+// 성공 케이스
+//    @MessageMapping("/post")
+//    @SendTo("/client/get")
+//    public String testcase(@RequestBody String data) throws Exception {
+//        String query = "from(bucket: \"CLIENT1\") |> range(start: -1m)" +
+//                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
+//        String json = queryClientToJson(query);
+//        return json;
+//    }
+
+    @MessageMapping("/main/machine")
+    @SendTo("/client/main/machine")
+    public String MainMachine(@RequestBody String data) throws Exception {
+        // 기기 각각의 최신값의 평균을 구하는 코드
+        List<Map<String, Object>> out_list = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        // CLIENT별로 for문을 보내야 할듯? 일단 지금은 1밖에 없으니깐 이까지 구축하기!
+        for (int i = 1; i < 2; i++) {
+            String client = "CLIENT" + String.valueOf(i);;
+            Map<String, Object> out_dic = new HashMap<>();
+            out_dic.put("name", "CLIENT1");
+            List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
+            List<Object> new_list = new ArrayList<>();
+            for (String sensor : sensors) {
+                String query = "from(bucket: \"CLIENT1\") |> range(start: -1h)" +
+                        " |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
+                        " |> last()" +
+                        " |> group(columns: [\"name\"])" +
+                        " |> last()";
+                List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+                List<FluxRecord> records = new ArrayList<>();
+
+                if (!tables.isEmpty()) {
+                    records = tables.get(0).getRecords();
+                }
+                Map<String, Object> values = new HashMap<>();
+                Double sensor_value = 0D;
+                for (FluxRecord record : records) {
+                    Double value = Double.parseDouble(record.getValueByKey("_value").toString());
+                    sensor_value += value;
+                }
+                int sensor_count;
+                if (sensor == "Motor" | sensor == "AIR_IN_KPA" | sensor == "WATER") {
+                    sensor_count = 10;
+                } else if (sensor == "VACUUM") {
+                    sensor_count = 30;
+                } else {
+                    sensor_count = 5;
+                }
+                // 여기서 sensor를
+                values.put(sensor, sensor_value/sensor_count);
+
+                new_list.add(values);
+            }
+            out_dic.put("value", new_list);
+            out_list.add(out_dic);
+        }
+        String json = objectMapper.writeValueAsString(out_list);
         return json;
     }
 
-    private String queryToJson(String query) throws JsonProcessingException {
-        QueryApi queryApi = influxDBClient.getQueryApi();
+    private String queryClientToJson(String query) throws JsonProcessingException {
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
         for (FluxTable table : tables) {
@@ -61,7 +118,6 @@ public class DataWebSocketController {
                 if (timeComparison != 0) {
                     return timeComparison;
                 }
-
                 // 시간이 같은 경우 이름으로 정렬
                 String name1 = (String) o1.get("name");
                 String name2 = (String) o2.get("name");
