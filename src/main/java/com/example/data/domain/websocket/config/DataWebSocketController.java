@@ -11,9 +11,11 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 public class DataWebSocketController {
@@ -27,13 +29,9 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 //        List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
         String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
-                " |> group(columns: [\"name\"])" +
-                " |> sort(columns: [\"_time\"], desc: true)" +
-                " |> first()" +
-                " |> map(fn: (r) => ({ name: r[\"name\"], date: r[\"_time\"], max_value: r[\"_value\"], min_value: r[\"_value\"] }))";
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
 //        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        String json = queryClientToJson(query);
+        String json = queryClientToMaxMinJson(query);
         return json;
     }
 // 성공 케이스
@@ -52,10 +50,13 @@ public class DataWebSocketController {
         // 기기 각각의 최신값의 평균을 구하는 코드
         List<Map<String, Object>> out_list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int i = 1; i < 3; i++) {
+        for (int i = 1; i < 2; i++) {
             String client = "CLIENT" + String.valueOf(i);;
             Map<String, Object> out_dic = new HashMap<>();
             out_dic.put("name", client);
+            Date now = new Date();
+            String nowTime = now.toString();
+            out_dic.put("time", nowTime);
             List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
             List<Object> new_list = new ArrayList<>();
             for (String sensor : sensors) {
@@ -93,6 +94,51 @@ public class DataWebSocketController {
             out_list.add(out_dic);
         }
         String json = objectMapper.writeValueAsString(out_list);
+        return json;
+    }
+    private String queryClientToMaxMinJson(String query) throws JsonProcessingException {
+        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+        List<Map<String, Object>> recordsList = new ArrayList<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                Map<String, Object> recordMap = new HashMap<>();
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put("name", valuesMap.get("name"));
+                recordMap.put("value", valuesMap.get("_value"));
+                Object finalValue = timeToSecond(valuesMap.get("generate_time"));
+                recordMap.put("time", finalValue);
+                recordsList.add(recordMap);
+                System.out.println("recordMap = " + recordMap);
+            }
+
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        List<Map<String, Object>> maxMinList = new ArrayList<>();
+        // name별로 그룹핑하고 최대 최소 구하기
+        Map<String, List<Map<String, Object>>> groupByNameMap = recordsList.stream()
+                .collect(Collectors.groupingBy(r -> r.get("name").toString()));
+        for (String name : groupByNameMap.keySet()) {
+            List<Map<String, Object>> groupList = groupByNameMap.get(name);
+            Double max = Double.MIN_VALUE;
+            Double min = Double.MAX_VALUE;
+            for (Map<String, Object> groupItem : groupList) {
+                Double value = Double.parseDouble(groupItem.get("value").toString());
+                if (value > max) {
+                    max = value;
+                }
+                if (value < min) {
+                    min = value;
+                }
+            }
+            Map<String, Object> maxMinMap = new HashMap<>();
+            maxMinMap.put("name", name);
+            maxMinMap.put("max_value", max);
+            maxMinMap.put("min_value", min);
+            maxMinList.add(maxMinMap);
+        }
+
+        String json = mapper.writeValueAsString(maxMinList);
+// System.out.println("json = " + json);
         return json;
     }
 
