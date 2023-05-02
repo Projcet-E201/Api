@@ -45,8 +45,7 @@ public class DataWebSocketController {
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
                 " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
-        String json = queryClientToJson(query);
-        return json;
+        return queryClientToJson(query);
     }
 // 성공 케이스
 //    @MessageMapping("/post")
@@ -65,7 +64,7 @@ public class DataWebSocketController {
         List<Map<String, Object>> out_list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
         for (int i = 1; i < 7; i++) {
-            String client = "CLIENT" + String.valueOf(i);
+            String client = "CLIENT" + i;
             Map<String, Object> out_dic = new HashMap<>();
             out_dic.put("name", client);
             Date now = new Date();
@@ -86,15 +85,15 @@ public class DataWebSocketController {
                     records = tables.get(0).getRecords();
                 }
                 Map<String, Object> values = new HashMap<>();
-                Double sensor_value = 0D;
+                double sensor_value = 0.0;
                 for (FluxRecord record : records) {
-                    Double value = Double.parseDouble(record.getValueByKey("_value").toString());
+                    double value = Double.parseDouble(record.getValueByKey("_value").toString());
                     sensor_value += value;
                 }
                 int sensor_count;
-                if (sensor == "Motor" | sensor == "AIR_IN_KPA" | sensor == "WATER") {
+                if (sensor.equals("Motor") | sensor.equals("AIR_IN_KPA") | sensor.equals("WATER")) {
                     sensor_count = 10;
-                } else if (sensor == "VACUUM") {
+                } else if (Objects.equals(sensor, "VACUUM")) {
                     sensor_count = 30;
                 } else {
                     sensor_count = 5;
@@ -149,10 +148,7 @@ public class DataWebSocketController {
             maxMinMap.put("min_value", min);
             maxMinList.add(maxMinMap);
         }
-
-        String json = mapper.writeValueAsString(maxMinList);
-// System.out.println("json = " + json);
-        return json;
+        return mapper.writeValueAsString(maxMinList);
     }
 
     private String queryClientToJson(String query) throws JsonProcessingException {
@@ -173,7 +169,7 @@ public class DataWebSocketController {
         }
         ObjectMapper mapper = new ObjectMapper();
         // Time 순으로 정렬
-        Comparator<Map<String, Object>> timeNameComparator = new Comparator<Map<String, Object>>() {
+        Comparator<Map<String, Object>> timeNameComparator = new Comparator<>() {
             private final NameComparator nameComparator = new NameComparator();
 
             @Override
@@ -199,12 +195,10 @@ public class DataWebSocketController {
     private Object timeToSecond(Object timestamp) {
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd/HH:mm:ss.SSS");
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd/HH:mm:ss");
-        String formattedDateTime = LocalDateTime.parse((CharSequence) timestamp, inputFormatter).format(outputFormatter);
-        Object finalValue = formattedDateTime;
-        return finalValue;
+        return LocalDateTime.parse((CharSequence) timestamp, inputFormatter).format(outputFormatter);
     }
 
-    private class NameComparator implements Comparator<String> {
+    private static class NameComparator implements Comparator<String> {
         @Override
         public int compare(String s1, String s2) {
             int len1 = s1.length(), len2 = s2.length();

@@ -2,7 +2,6 @@ spring:
   profiles:
     active: local, secret
 
-
   websocket:
     connection-timeout: 5000000
     max-binary-message-buffer-size: 5000000
