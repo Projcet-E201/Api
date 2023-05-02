@@ -3,12 +3,12 @@ services:
   dev-back-blue:
     container_name: tcp-server
     build:
-      context: src
+      context: .
       dockerfile: Dockerfile
       args:
         PROFILE: "prod"
     ports:
-      - "8080:8080"
+      - "8091:8091"
       - "9997:9997"
       - "9998:9998"
       - "9999:9999"
