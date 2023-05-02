@@ -27,11 +27,11 @@ public class DataWebSocketController {
     @SendTo("/client/machine/sensor")
     public String testcase(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
+        System.out.println("client = " + client);
 //        List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
         String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
                 " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
-//        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        String json = queryClientToMaxMinJson(query);
+        String json = queryClientToJson(query);
         return json;
     }
 // 성공 케이스
@@ -43,6 +43,20 @@ public class DataWebSocketController {
 //        String json = queryClientToJson(query);
 //        return json;
 //    }
+//    @MessageMapping("/main/machine")
+//    @SendTo("/client/main/machine")
+//    public String MainMachine(@RequestBody String data) throws Exception {
+//        List<Map<String, Object>> mainList = new ArrayList<>;
+//        ObjectMapper mainMapper = new ObjectMapper();
+//        for (int i = 1; i < 7; i++) {
+//            ObjectMapper valueMapper = new ObjectMapper();
+//            String client = "CLIENT" + String.valueOf(i);
+//            // 센서 종류
+//            List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
+//
+//        }
+//    }
+
 
     @MessageMapping("/main/machine")
     @SendTo("/client/main/machine")
@@ -50,8 +64,8 @@ public class DataWebSocketController {
         // 기기 각각의 최신값의 평균을 구하는 코드
         List<Map<String, Object>> out_list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int i = 1; i < 2; i++) {
-            String client = "CLIENT" + String.valueOf(i);;
+        for (int i = 1; i < 7; i++) {
+            String client = "CLIENT" + String.valueOf(i);
             Map<String, Object> out_dic = new HashMap<>();
             out_dic.put("name", client);
             Date now = new Date();
@@ -60,7 +74,7 @@ public class DataWebSocketController {
             List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
             List<Object> new_list = new ArrayList<>();
             for (String sensor : sensors) {
-                String query = "from(bucket: \""+ client +"\") |> range(start: -1h)" +
+                String query = "from(bucket: \""+ client +"\") |> range(start: -2m)" +
                         " |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
                         " |> last()" +
                         " |> group(columns: [\"name\"])" +
