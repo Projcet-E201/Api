@@ -13,11 +13,8 @@ services:
       - "9998:9998"
       - "9999:9999"
     networks:
-      - br_log
       - br_app
 
 networks:
-  br_log:
-    external: true
   br_app:
     external: true
