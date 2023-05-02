@@ -2,10 +2,11 @@ spring:
   profiles:
     active: local, secret
 
-  influxdb:
-    url: http://k8e2011.p.ssafy.io:8086
-    #    url: http://localhost:8086
 
+  websocket:
+    connection-timeout: 5000000
+    max-binary-message-buffer-size: 5000000
+    handshake-timeout: 300000
 
   jpa:
     properties:

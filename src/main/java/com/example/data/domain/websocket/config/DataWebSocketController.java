@@ -11,7 +11,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -23,12 +22,27 @@ public class DataWebSocketController {
     @Autowired
     private InfluxDBClient influxDBClient;
 
+//    Map<String, String> sensor_search = new HashMap<>();
+
+//    private Map<String, String> map(){
+//
+//        // 초기화 로직
+//        List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
+//
+//        sensor_search.put("MOTOR","10m,max,min");
+//        sensor_search.put("IR_IN_KPA","12s,mean");
+//        sensor_search.put("AIR_OUT_KPA","5m,max,min");
+//        sensor_search.put("AIR_OUT_MPA","2m,max,min");
+//        sensor_search.put("LOAD","2m,last");
+//
+//        return sensor_search;
+//    }
+
     @MessageMapping("/machine/sensor")
     @SendTo("/client/machine/sensor")
     public String testcase(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
-        System.out.println("client = " + client);
-//        List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
+
         String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
                 " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
         String json = queryClientToJson(query);
@@ -43,20 +57,6 @@ public class DataWebSocketController {
 //        String json = queryClientToJson(query);
 //        return json;
 //    }
-//    @MessageMapping("/main/machine")
-//    @SendTo("/client/main/machine")
-//    public String MainMachine(@RequestBody String data) throws Exception {
-//        List<Map<String, Object>> mainList = new ArrayList<>;
-//        ObjectMapper mainMapper = new ObjectMapper();
-//        for (int i = 1; i < 7; i++) {
-//            ObjectMapper valueMapper = new ObjectMapper();
-//            String client = "CLIENT" + String.valueOf(i);
-//            // 센서 종류
-//            List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
-//
-//        }
-//    }
-
 
     @MessageMapping("/main/machine")
     @SendTo("/client/main/machine")
@@ -107,8 +107,7 @@ public class DataWebSocketController {
             out_dic.put("value", new_list);
             out_list.add(out_dic);
         }
-        String json = objectMapper.writeValueAsString(out_list);
-        return json;
+        return objectMapper.writeValueAsString(out_list);
     }
     private String queryClientToMaxMinJson(String query) throws JsonProcessingException {
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
@@ -133,10 +132,10 @@ public class DataWebSocketController {
                 .collect(Collectors.groupingBy(r -> r.get("name").toString()));
         for (String name : groupByNameMap.keySet()) {
             List<Map<String, Object>> groupList = groupByNameMap.get(name);
-            Double max = Double.MIN_VALUE;
-            Double min = Double.MAX_VALUE;
+            double max = Double.MIN_VALUE;
+            double min = Double.MAX_VALUE;
             for (Map<String, Object> groupItem : groupList) {
-                Double value = Double.parseDouble(groupItem.get("value").toString());
+                double value = Double.parseDouble(groupItem.get("value").toString());
                 if (value > max) {
                     max = value;
                 }
@@ -193,9 +192,8 @@ public class DataWebSocketController {
         // recordsList를 정렬
         Collections.sort(recordsList, timeNameComparator);
 
-        String json = mapper.writeValueAsString(recordsList);
-//        System.out.println("json = " + json);
-        return json;
+        //        System.out.println("json = " + json);
+        return mapper.writeValueAsString(recordsList);
     }
 
     private Object timeToSecond(Object timestamp) {
