@@ -9,9 +9,6 @@ services:
         PROFILE: "prod"
     ports:
       - "8091:8091"
-      - "9997:9997"
-      - "9998:9998"
-      - "9999:9999"
     networks:
       - br_app
 
