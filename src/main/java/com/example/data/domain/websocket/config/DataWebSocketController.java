@@ -38,13 +38,92 @@ public class DataWebSocketController {
 //        return sensor_search;
 //    }
 
-    @MessageMapping("/machine/sensor")
-    @SendTo("/client/machine/sensor")
-    public String testcase(@RequestBody String data) throws Exception {
+    @MessageMapping("/machine/motor")
+    @SendTo("/client/machine/motor")
+    public String machineMotor(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
+        String query = "from(bucket: \""+ client + "\") |> range(start: -1m, stop:now())" +
                 " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/air_in_kpa")
+    @SendTo("/client/machine/air_in_kpa")
+    public String machinAirInKpa(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12s, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/air_out_kpa")
+    @SendTo("/client/machine/air_out_kpa")
+    public String machinAirOutKpa(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -5m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/air_out_mpa")
+    @SendTo("/client/machine/air_out_mpa")
+    public String machinAirOutMpa(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/vacuum")
+    @SendTo("/client/machine/vacuum")
+    public String machinVacuum(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/water")
+    @SendTo("/client/machine/water")
+    public String machinWater(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -20s, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/abrasion")
+    @SendTo("/client/machine/abrasion")
+    public String machinAbrasion(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12h, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")";
+        return queryClientToJson(query);
+    }
+    @MessageMapping("/machine/load")
+    @SendTo("/client/machine/load")
+    public String machinLoad(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/velocity")
+    @SendTo("/client/machine/velocity")
+    public String machinVelocity(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")";
         return queryClientToJson(query);
     }
 // 성공 케이스
@@ -73,7 +152,7 @@ public class DataWebSocketController {
             List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
             List<Object> new_list = new ArrayList<>();
             for (String sensor : sensors) {
-                String query = "from(bucket: \""+ client +"\") |> range(start: -2m)" +
+                String query = "from(bucket: \""+ client +"\") |> range(start: -90s)" +
                         " |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
                         " |> last()" +
                         " |> group(columns: [\"name\"])" +

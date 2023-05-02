@@ -2,7 +2,6 @@ package com.example.data.domain.websocket.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -12,7 +11,15 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setMessageSizeLimit(10 * 1024 * 1024); // 10 MB
+        registration.setSendBufferSizeLimit(10 * 1024 * 1024); // 10 MB
+        registration.setSendTimeLimit(20 * 10000); // 20 sec
+    }
+
+    @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
+
         // server -> client
         // ex /plans/greeting (서버가 보냄)
         config.enableSimpleBroker("/client");
