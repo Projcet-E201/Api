@@ -40,6 +40,8 @@ public class DataWebSocketController {
 //    @MessageMapping("/machine/sensor")
 //    @SendTo("/client/machine/sensor")
 //    public String machineMotor(@RequestBody String data) throws Exception {
+//        String client = "CLIENT" + data;
+//        String query = "from(bucket: \""+ client +"\")" +
 //
 //    }
 
@@ -268,8 +270,7 @@ public class DataWebSocketController {
                 Map<String, Object> valuesMap = record.getValues();
                 recordMap.put("name", valuesMap.get("name"));
                 recordMap.put("value", valuesMap.get("_value"));
-                Object finalValue = timeToSecond(valuesMap.get("generate_time"));
-                recordMap.put("time", finalValue);
+                recordMap.put("time", valuesMap.get("generate_time"));
                 recordsList.add(recordMap);
                 System.out.println("recordMap = " + recordMap);
             }
@@ -311,7 +312,8 @@ public class DataWebSocketController {
                 Map<String, Object> valuesMap = record.getValues();
                 recordMap.put("name", valuesMap.get("name"));
                 recordMap.put("value", valuesMap.get("value"));
-                recordMap.put("time", valuesMap.get("time"));
+                Object timeSecond = (valuesMap.get("time"));
+                recordMap.put("time", timeSecond);
                 recordsList.add(recordMap);
                 System.out.println("recordMap = " + recordMap);
             }
