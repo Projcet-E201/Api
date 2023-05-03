@@ -43,13 +43,11 @@ public class DataWebSocketController {
     public String machineMotor(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"" + client +"\")" +
-            " |> range(start: -1m)" +
+            "  |> range(start: -1m)" +
             "  |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
             "  |> group(columns:[\"name\"]) " +
             "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
             "  |> limit(n:10)";
-//        String query = "from(bucket: \""+ client + "\") |> range(start: -1m, stop:now())" +
-//                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
         return queryClientToJson(query);
         }
 
@@ -73,7 +71,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -5m, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -86,7 +84,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -99,7 +97,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -112,7 +110,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -20s, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -125,7 +123,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -12h, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -137,7 +135,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -150,7 +148,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
