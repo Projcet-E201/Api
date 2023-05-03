@@ -70,8 +70,7 @@ public class DataWebSocketController {
             }
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writeValueAsString(recordsList);
-        return json;
+        return objectMapper.writeValueAsString(recordsList);
     }
 
     @MessageMapping("/machine/motor")
