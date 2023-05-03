@@ -37,13 +37,49 @@ public class DataWebSocketController {
 //
 //        return sensor_search;
 //    }
+//    @MessageMapping("/machine/sensor")
+//    @SendTo("/client/machine/sensor")
+//    public String machineMotor(@RequestBody String data) throws Exception {
+//
+//    }
+
+    @MessageMapping("/machine/state")
+    @SendTo("/client/machine/state")
+    public String machineState(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+        String query = "from(bucket: \"day\")" +
+                "  |> range(start: -10s, stop: now())" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client +"\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> last()";
+        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+        List<Map<String, Object>> recordsList = new ArrayList<>();
+        Map<String, Object> recordMap = null;
+        int count = 0;
+        int maxCount = 10;
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                if (count % maxCount == 0) {
+                    // 일정 개수마다 새로운 딕셔너리 생성
+                    recordMap = new HashMap<>();
+                    recordsList.add(recordMap); // 생성된 딕셔너리를 리스트에 추가
+                }
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put(valuesMap.get("name").toString(),valuesMap.get("_value"));
+                count++;
+            }
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(recordsList);
+        return json;
+    }
 
     @MessageMapping("/machine/motor")
     @SendTo("/client/machine/motor")
     public String machineMotor(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"" + client +"\")" +
-            "  |> range(start: -1m)" +
+            "  |> range(start: -1m, stop: now())" +
             "  |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
             "  |> group(columns:[\"name\"]) " +
             "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -57,8 +93,9 @@ public class DataWebSocketController {
     public String machinAirInKpa(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -12s, stop:now())" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -12s, stop:now())" +
+                "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -70,7 +107,8 @@ public class DataWebSocketController {
     public String machinAirOutKpa(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -5m, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -5m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -83,7 +121,8 @@ public class DataWebSocketController {
     public String machinAirOutMpa(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -2m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -96,7 +135,8 @@ public class DataWebSocketController {
     public String machinVacuum(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -2m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -109,7 +149,8 @@ public class DataWebSocketController {
     public String machinWater(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -20s, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -20s, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -122,7 +163,8 @@ public class DataWebSocketController {
     public String machinAbrasion(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -12h, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -12h, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -134,7 +176,8 @@ public class DataWebSocketController {
     public String machinLoad(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -12m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -147,7 +190,8 @@ public class DataWebSocketController {
     public String machinVelocity(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
+        String query = "from(bucket: \""+ client + "\")" +
+                "  |> range(start: -12m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -180,11 +224,12 @@ public class DataWebSocketController {
             List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
             List<Object> new_list = new ArrayList<>();
             for (String sensor : sensors) {
-                String query = "from(bucket: \""+ client +"\") |> range(start: -2m)" +
-                        " |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
-                        " |> last()" +
-                        " |> group(columns: [\"name\"])" +
-                        " |> last()";
+                String query = "from(bucket: \""+ client +"\")" +
+                        "  |> range(start: -2m)" +
+                        "  |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
+                        "  |> last()" +
+                        "  |> group(columns: [\"name\"])" +
+                        "  |> last()";
                 List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
                 List<FluxRecord> records = new ArrayList<>();
 

@@ -34,7 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
-        System.out.println("registry 연결고리" + registry);
+//        System.out.println("registry 연결고리" + registry);
     }
 
 
