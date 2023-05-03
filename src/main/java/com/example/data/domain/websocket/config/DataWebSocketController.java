@@ -38,13 +38,122 @@ public class DataWebSocketController {
 //        return sensor_search;
 //    }
 
-    @MessageMapping("/machine/sensor")
-    @SendTo("/client/machine/sensor")
-    public String testcase(@RequestBody String data) throws Exception {
+    @MessageMapping("/machine/motor")
+    @SendTo("/client/machine/motor")
+    public String machineMotor(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+        String query = "from(bucket: \"" + client +"\")" +
+            " |> range(start: -1m)" +
+            "  |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+            "  |> group(columns:[\"name\"]) " +
+            "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+            "  |> limit(n:10)";
+//        String query = "from(bucket: \""+ client + "\") |> range(start: -1m, stop:now())" +
+//                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
+        return queryClientToJson(query);
+        }
+
+
+    @MessageMapping("/machine/air_in_kpa")
+    @SendTo("/client/machine/air_in_kpa")
+    public String machinAirInKpa(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
 
-        String query = "from(bucket: \""+ client + "\") |> range(start: -1m)" +
-                " |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")";
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12s, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/air_out_kpa")
+    @SendTo("/client/machine/air_out_kpa")
+    public String machinAirOutKpa(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -5m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/air_out_mpa")
+    @SendTo("/client/machine/air_out_mpa")
+    public String machinAirOutMpa(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/vacuum")
+    @SendTo("/client/machine/vacuum")
+    public String machinVacuum(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -2m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/water")
+    @SendTo("/client/machine/water")
+    public String machinWater(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -20s, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/abrasion")
+    @SendTo("/client/machine/abrasion")
+    public String machinAbrasion(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12h, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+    @MessageMapping("/machine/load")
+    @SendTo("/client/machine/load")
+    public String machinLoad(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
+        return queryClientToJson(query);
+    }
+
+    @MessageMapping("/machine/velocity")
+    @SendTo("/client/machine/velocity")
+    public String machinVelocity(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+
+        String query = "from(bucket: \""+ client + "\") |> range(start: -12m, stop:now())" +
+                " |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
+                "  |> group(columns:[\"name\"]) " +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
+                "  |> limit(n:10)";
         return queryClientToJson(query);
     }
 // 성공 케이스
@@ -63,7 +172,7 @@ public class DataWebSocketController {
         // 기기 각각의 최신값의 평균을 구하는 코드
         List<Map<String, Object>> out_list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int i = 1; i < 7; i++) {
+        for (int i = 1; i < 13; i++) {
             String client = "CLIENT" + i;
             Map<String, Object> out_dic = new HashMap<>();
             out_dic.put("name", client);
@@ -159,9 +268,8 @@ public class DataWebSocketController {
                 Map<String, Object> recordMap = new HashMap<>();
                 Map<String, Object> valuesMap = record.getValues();
                 recordMap.put("name", valuesMap.get("name"));
-                recordMap.put("value", valuesMap.get("_value"));
-                Object finalValue = timeToSecond(valuesMap.get("generate_time"));
-                recordMap.put("time", finalValue);
+                recordMap.put("value", valuesMap.get("value"));
+                recordMap.put("time", valuesMap.get("time"));
                 recordsList.add(recordMap);
                 System.out.println("recordMap = " + recordMap);
             }
@@ -186,7 +294,7 @@ public class DataWebSocketController {
             }
         };
         // recordsList를 정렬
-        Collections.sort(recordsList, timeNameComparator);
+        recordsList.sort(timeNameComparator);
 
         //        System.out.println("json = " + json);
         return mapper.writeValueAsString(recordsList);
