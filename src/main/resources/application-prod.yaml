@@ -5,11 +5,8 @@ spring:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://mysql_container:3306/data?useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&serverTimezone=Asia/Seoul
   influxdb:
-    url: http://localhost:8086
-  websocket:
-    connection-timeout: 5000000
-    max-binary-message-buffer-size: 5000000
-    handshake-timeout: 300000
+    url: http://influxdb:8086
+
   jpa:
     hibernate:
       ddl-auto: update

@@ -10,7 +10,7 @@ spring:
     max-binary-message-buffer-size: 5000000
     handshake-timeout: 300000
   influxdb:
-    url: http://k8e2011.p.ssafy.io:8086
+    url: http://k8e201.p.ssafy.io:8086
 
   jpa:
     hibernate:
