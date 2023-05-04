@@ -38,4 +38,4 @@ out/
 .vscode/
 
 ### 설정 파일 ###
-application-secret.yaml
+!**/src/main/resources/application-secret.yaml
