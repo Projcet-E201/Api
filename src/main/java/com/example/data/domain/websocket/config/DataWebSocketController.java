@@ -18,32 +18,245 @@ import java.util.stream.Collectors;
 
 @RestController
 public class DataWebSocketController {
-
     @Autowired
     private InfluxDBClient influxDBClient;
+    @MessageMapping("/machine/sensor")
+    @SendTo("/client/machine/sensor")
+    public String machineSensor(@RequestBody String data) throws Exception {
+        String client = "CLIENT" + data;
+        // velocity
+        List<Map<String, Object>> outList = new ArrayList<>();
+        Map<String, Object> outMap = new HashMap<>();
+        String query = "from(bucket: \""+ client +"\")" +
+                "|> range(start: -5m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
+                "|> group(columns: [\"name\"])" +
+                "|> last()" +
+                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
 
-//    Map<String, String> sensor_search = new HashMap<>();
+        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+        List<Map<String, Object>> recordsList = new ArrayList<>();
+        Map<String, Object> recordMap = new HashMap<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
+            }
+        }
+        recordsList.add(recordMap);
+        outMap.put("VELOCITY",recordsList);
+        // Load
+        query = "from(bucket: \""+ client +"\")" +
+                "|> range(start: -5m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
+                "|> group(columns: [\"name\"])" +
+                "|> last()" +
+                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
 
-//    private Map<String, String> map(){
-//
-//        // 초기화 로직
-//        List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
-//
-//        sensor_search.put("MOTOR","10m,max,min");
-//        sensor_search.put("IR_IN_KPA","12s,mean");
-//        sensor_search.put("AIR_OUT_KPA","5m,max,min");
-//        sensor_search.put("AIR_OUT_MPA","2m,max,min");
-//        sensor_search.put("LOAD","2m,last");
-//
-//        return sensor_search;
-//    }
-//    @MessageMapping("/machine/sensor")
-//    @SendTo("/client/machine/sensor")
-//    public String machineMotor(@RequestBody String data) throws Exception {
-//        String client = "CLIENT" + data;
-//        String query = "from(bucket: \""+ client +"\")" +
-//
-//    }
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        recordMap = new HashMap<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
+            }
+        }
+        recordsList.add(recordMap);
+        outMap.put("LOAD",recordsList);
+        //ABRASION
+        query = "from(bucket: \""+ client +"\")" +
+                "|> range(start: -6h, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
+                "|> group(columns: [\"name\"])" +
+                "|> last()" +
+                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
+
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        recordMap = new HashMap<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
+            }
+        }
+        recordsList.add(recordMap);
+        outMap.put("ABRASION",recordsList);
+        //WATER
+        query = "from(bucket: \""+ client +"\")" +
+                "|> range(start: -1m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
+                "|> group(columns: [\"name\"])" +
+                "|> last()" +
+                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
+
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        recordMap = new HashMap<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
+            }
+        }
+        recordsList.add(recordMap);
+        outMap.put("WATER",recordsList);
+        //AIR_OUT_KPA
+        query = "max_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -10m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> max(column: \"_value\")" +
+                "|> rename(columns: {_value: \"max_value\"})" +
+
+                "min_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -10m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> min(column: \"_value\")" +
+                "|> rename(columns: {_value: \"min_value\"})" +
+
+                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
+                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
+                "|> limit(n: 10)";
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                recordMap = new HashMap<>();
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put("time", valuesMap.get("time"));
+                recordMap.put("max_value", valuesMap.get("max_value"));
+                recordMap.put("min_value", valuesMap.get("min_value"));
+                recordsList.add(recordMap);
+//                System.out.println("recordMap = " + recordMap);
+            }
+        }
+        outMap.put("AIR_OUT_MPA",recordsList);
+        //AIR_OUT_MPA
+        query = "max_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -30m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> max(column: \"_value\")" +
+                "|> rename(columns: {_value: \"max_value\"})" +
+
+                "min_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -30m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> min(column: \"_value\")" +
+                "|> rename(columns: {_value: \"min_value\"})" +
+
+                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
+                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
+                "|> limit(n: 10)";
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                recordMap = new HashMap<>();
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put("time", valuesMap.get("time"));
+                recordMap.put("max_value", valuesMap.get("max_value"));
+                recordMap.put("min_value", valuesMap.get("min_value"));
+                recordsList.add(recordMap);
+//                System.out.println("recordMap = " + recordMap);
+            }
+        }
+        outMap.put("AIR_OUT_MPA",recordsList);
+        //VACUUM
+        query = "max_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -5m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> max(column: \"_value\")" +
+                "|> rename(columns: {_value: \"max_value\"})" +
+
+                "min_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -5m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> min(column: \"_value\")" +
+                "|> rename(columns: {_value: \"min_value\"})" +
+
+                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
+                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
+                "|> limit(n: 10)";
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                recordMap = new HashMap<>();
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put("time", valuesMap.get("time"));
+                recordMap.put("max_value", valuesMap.get("max_value"));
+                recordMap.put("min_value", valuesMap.get("min_value"));
+                recordsList.add(recordMap);
+//                System.out.println("recordMap = " + recordMap);
+            }
+        }
+        outMap.put("VACUUM",recordsList);
+        //MOTOR
+        query = "max_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -5m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> max(column: \"_value\")" +
+                "|> rename(columns: {_value: \"max_value\"})" +
+
+                "min_values = from(bucket: \""+ client +"\")" +
+                "|> range(start: -5m, stop: now())" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+                "|> group(columns: [\"generate_time\"])" +
+                "|> min(column: \"_value\")" +
+                "|> rename(columns: {_value: \"min_value\"})" +
+
+                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
+                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
+                "|> limit(n: 10)";
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                recordMap = new HashMap<>();
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put("time", valuesMap.get("time"));
+                recordMap.put("max_value", valuesMap.get("max_value"));
+                recordMap.put("min_value", valuesMap.get("min_value"));
+                recordsList.add(recordMap);
+//                System.out.println("recordMap = " + recordMap);
+            }
+        }
+        outMap.put("MOTOR",recordsList);
+        // air_in_kpa
+        query = "from(bucket: \"" + client + "\")" +
+        "|> range(start: -1m, stop: now())" +
+        "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
+        "|> group(columns: [\"generate_time\"])" +
+        "|> mean(column: \"_value\")" +
+        "|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
+        "|> limit(n:10)";
+        tables = influxDBClient.getQueryApi().query(query, "semse");
+        recordsList = new ArrayList<>();
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                recordMap = new HashMap<>();
+                Map<String, Object> valuesMap = record.getValues();
+                recordMap.put("time", valuesMap.get("time"));
+                recordMap.put("avg", valuesMap.get("value"));
+                recordsList.add(recordMap);
+//                System.out.println("recordMap = " + recordMap);
+            }
+        }
+        outMap.put("AIR_IN_KPA",recordsList);
+        // 마무리
+        outList.add(outMap);
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(outList);
+    }
+
 
     @MessageMapping("/machine/state")
     @SendTo("/client/machine/state")
@@ -80,7 +293,7 @@ public class DataWebSocketController {
     public String machineMotor(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"" + client +"\")" +
-            "  |> range(start: -1m, stop: now())" +
+            "  |> range(start: -2m, stop: now())" +
             "  |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
             "  |> group(columns:[\"name\"]) " +
             "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -95,7 +308,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -12s, stop:now())" +
+                "  |> range(start: -24s, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -109,7 +322,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -5m, stop:now())" +
+                "  |> range(start: -10m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -123,7 +336,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -2m, stop:now())" +
+                "  |> range(start: -4m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -137,7 +350,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -2m, stop:now())" +
+                "  |> range(start: -4m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -151,7 +364,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -20s, stop:now())" +
+                "  |> range(start: -40s, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -165,7 +378,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -12h, stop:now())" +
+                "  |> range(start: -1d, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -178,7 +391,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -12m, stop:now())" +
+                "  |> range(start: -24m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -192,7 +405,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \""+ client + "\")" +
-                "  |> range(start: -12m, stop:now())" +
+                "  |> range(start: -24m, stop:now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
@@ -208,101 +421,41 @@ public class DataWebSocketController {
 //        String json = queryClientToJson(query);
 //        return json;
 //    }
-
     @MessageMapping("/main/machine")
     @SendTo("/client/main/machine")
     public String MainMachine(@RequestBody String data) throws Exception {
         // 기기 각각의 최신값의 평균을 구하는 코드
-        List<Map<String, Object>> out_list = new ArrayList<>();
+        Map<String, Object> outMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
         for (int i = 1; i < 13; i++) {
             String client = "CLIENT" + i;
-            Map<String, Object> out_dic = new HashMap<>();
-            out_dic.put("name", client);
-            Date now = new Date();
-            String nowTime = now.toString();
-            out_dic.put("time", nowTime);
-            List<String> sensors = Arrays.asList("MOTOR","AIR_IN_KPA","AIR_OUT_KPA","AIR_OUT_MPA","LOAD","VACUUM","VELOCITY","WATER");
-            List<Object> new_list = new ArrayList<>();
+            Map<String, Object> sensorAverages = new HashMap<>();
+            List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM", "VELOCITY", "WATER");
+
             for (String sensor : sensors) {
-                String query = "from(bucket: \""+ client +"\")" +
+                String query = "from(bucket: \"" + client + "\")" +
                         "  |> range(start: -2m)" +
                         "  |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
                         "  |> last()" +
                         "  |> group(columns: [\"name\"])" +
                         "  |> last()";
                 List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-                List<FluxRecord> records = new ArrayList<>();
 
                 if (!tables.isEmpty()) {
-                    records = tables.get(0).getRecords();
+                    FluxRecord record = tables.get(0).getRecords().get(0);
+                    if (record != null) {
+                        double value = Double.parseDouble(record.getValueByKey("_value").toString());
+                        sensorAverages.put(sensor, value);
+                    } else {
+                        System.out.println("No data for client: " + client + " sensor: " + sensor);
+                    }
                 }
-                Map<String, Object> values = new HashMap<>();
-                double sensor_value = 0.0;
-                for (FluxRecord record : records) {
-                    double value = Double.parseDouble(record.getValueByKey("_value").toString());
-                    sensor_value += value;
-                }
-                int sensor_count;
-                if (sensor.equals("Motor") | sensor.equals("AIR_IN_KPA") | sensor.equals("WATER")) {
-                    sensor_count = 10;
-                } else if (Objects.equals(sensor, "VACUUM")) {
-                    sensor_count = 30;
-                } else {
-                    sensor_count = 5;
-                }
-                // 여기서 sensor를
-                values.put(sensor, sensor_value/sensor_count);
-
-                new_list.add(values);
             }
-            out_dic.put("value", new_list);
-            out_list.add(out_dic);
+            outMap.put(client, sensorAverages);
         }
-        return objectMapper.writeValueAsString(out_list);
+
+        return "[" + objectMapper.writeValueAsString(outMap) + "]";
     }
-    private String queryClientToMaxMinJson(String query) throws JsonProcessingException {
-        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        List<Map<String, Object>> recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("name", valuesMap.get("name"));
-                recordMap.put("value", valuesMap.get("_value"));
-                recordMap.put("time", valuesMap.get("generate_time"));
-                recordsList.add(recordMap);
-                System.out.println("recordMap = " + recordMap);
-            }
-
-        }
-        ObjectMapper mapper = new ObjectMapper();
-        List<Map<String, Object>> maxMinList = new ArrayList<>();
-        // name별로 그룹핑하고 최대 최소 구하기
-        Map<String, List<Map<String, Object>>> groupByNameMap = recordsList.stream()
-                .collect(Collectors.groupingBy(r -> r.get("name").toString()));
-        for (String name : groupByNameMap.keySet()) {
-            List<Map<String, Object>> groupList = groupByNameMap.get(name);
-            double max = Double.MIN_VALUE;
-            double min = Double.MAX_VALUE;
-            for (Map<String, Object> groupItem : groupList) {
-                double value = Double.parseDouble(groupItem.get("value").toString());
-                if (value > max) {
-                    max = value;
-                }
-                if (value < min) {
-                    min = value;
-                }
-            }
-            Map<String, Object> maxMinMap = new HashMap<>();
-            maxMinMap.put("name", name);
-            maxMinMap.put("max_value", max);
-            maxMinMap.put("min_value", min);
-            maxMinList.add(maxMinMap);
-        }
-        return mapper.writeValueAsString(maxMinList);
-    }
-
     private String queryClientToJson(String query) throws JsonProcessingException {
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
@@ -315,9 +468,8 @@ public class DataWebSocketController {
                 Object timeSecond = (valuesMap.get("time"));
                 recordMap.put("time", timeSecond);
                 recordsList.add(recordMap);
-                System.out.println("recordMap = " + recordMap);
+//                System.out.println("recordMap = " + recordMap);
             }
-
         }
         ObjectMapper mapper = new ObjectMapper();
         // Time 순으로 정렬
