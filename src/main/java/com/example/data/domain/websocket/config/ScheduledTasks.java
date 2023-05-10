@@ -48,7 +48,7 @@ public class ScheduledTasks {
 
     }
 
-    @Scheduled(fixedRate = 10000) // 1000ms(1초)마다 메서드를 실행
+    @Scheduled(fixedRate = 10000) // 1000ms(10초)마다 메서드를 실행
     public void sendPeriodicMainMessages() throws Exception {
         String mainMachine = pageMessageService.mainMachine();
         messagingTemplate.convertAndSend("/client/main/machine", mainMachine);

@@ -3,7 +3,7 @@ spring:
     active: local, secret
   websocket:
     connection-timeout: 5000000
-    max-binary-message-buffer-size: 5000000
+    max-binary-message-buffer-size: 50000
     handshake-timeout: 300000
   jpa:
     properties:

@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,31 +28,59 @@ public class PageMessageService {
 
     public String machineState() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
-        System.out.println("client = " + client);
         String query = "from(bucket: \"day\")" +
-                "  |> range(start: -10s, stop: now())" +
+                "  |> range(start: -2m, stop: now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client +"\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> last()";
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
         Map<String, Object> recordMap = null;
-        int count = 0;
-        int maxCount = 10;
+        String currentPrefix = null;
+
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
-                if (count % maxCount == 0) {
-                    // 일정 개수마다 새로운 딕셔너리 생성
-                    recordMap = new HashMap<>();
-                    recordsList.add(recordMap); // 생성된 딕셔너리를 리스트에 추가
-                }
                 Map<String, Object> valuesMap = record.getValues();
-                recordMap.put(valuesMap.get("name").toString(),valuesMap.get("_value"));
-                count++;
+                String name = valuesMap.get("name").toString();
+
+                // Name의 접두어를 가져옵니다.
+                String prefix = name.replaceAll("([a-zA-Z]*).*", "$1");
+
+                // Name의 접두어가 변경되었거나 recordMap이 아직 생성되지 않은 경우
+                if (recordMap == null || !prefix.equals(currentPrefix)) {
+                    currentPrefix = prefix;
+
+                    // 이전 recordMap에 대해 누락된 키를 추가합니다.
+                    if (recordMap != null) {
+                        for (int i = 1; i <= 10; i++) {
+                            String key = currentPrefix + i;
+                            recordMap.putIfAbsent(key, null);
+                        }
+                    }
+
+                    recordMap = new HashMap<>();
+                    recordsList.add(recordMap);  // 생성된 딕셔너리를 리스트에 추가
+                }
+
+                recordMap.put(name, valuesMap.get("_value"));
             }
         }
+
+        // 마지막 recordMap에 대해 누락된 키를 추가합니다.
+        if (recordMap != null) {
+            for (int i = 1; i <= 10; i++) {
+                String key = currentPrefix + i;
+                recordMap.putIfAbsent(key, null);
+            }
+        }
+
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(recordsList);
+        try {
+            return objectMapper.writeValueAsString(recordsList);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public String machineSensor() throws Exception {
@@ -61,9 +88,10 @@ public class PageMessageService {
         // velocity
         List<Map<String, Object>> outList = new ArrayList<>();
         Map<String, Object> outMap = new HashMap<>();
-        String query = "from(bucket: \""+ client +"\")" +
+        String query = "from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"VELOCITY\")" +
                 "|> group(columns: [\"name\"])" +
                 "|> last()" +
                 "|> map(fn: (r) => ({value:r._value,name:r.name}))";
@@ -80,9 +108,10 @@ public class PageMessageService {
         recordsList.add(recordMap);
         outMap.put("VELOCITY",recordsList);
         // Load
-        query = "from(bucket: \""+ client +"\")" +
+        query = "from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"LOAD\")" +
                 "|> group(columns: [\"name\"])" +
                 "|> last()" +
                 "|> map(fn: (r) => ({value:r._value,name:r.name}))";
@@ -99,9 +128,10 @@ public class PageMessageService {
         recordsList.add(recordMap);
         outMap.put("LOAD",recordsList);
         //ABRASION
-        query = "from(bucket: \""+ client +"\")" +
+        query = "from(bucket: \"week\")" +
                 "|> range(start: -6h, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
                 "|> group(columns: [\"name\"])" +
                 "|> last()" +
                 "|> map(fn: (r) => ({value:r._value,name:r.name}))";
@@ -118,9 +148,10 @@ public class PageMessageService {
         recordsList.add(recordMap);
         outMap.put("ABRASION",recordsList);
         //WATER
-        query = "from(bucket: \""+ client +"\")" +
+        query = "from(bucket: \"week\")" +
                 "|> range(start: -1m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"WATER\")" +
                 "|> group(columns: [\"name\"])" +
                 "|> last()" +
                 "|> map(fn: (r) => ({value:r._value,name:r.name}))";
@@ -137,14 +168,15 @@ public class PageMessageService {
         recordsList.add(recordMap);
         outMap.put("WATER",recordsList);
         //AIR_OUT_KPA
-        query = "max_values = from(bucket: \""+ client +"\")" +
+        query = "max_values = from(bucket: \"week\")" +
                 "|> range(start: -10m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_MPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> max(column: \"_value\")" +
                 "|> rename(columns: {_value: \"max_value\"})" +
 
-                "min_values = from(bucket: \""+ client +"\")" +
+                "min_values = from(bucket: \"week\")" +
                 "|> range(start: -10m, stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -169,16 +201,18 @@ public class PageMessageService {
         }
         outMap.put("AIR_OUT_MPA",recordsList);
         //AIR_OUT_MPA
-        query = "max_values = from(bucket: \""+ client +"\")" +
+        query = "max_values = from(bucket: \"week\")" +
                 "|> range(start: -30m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> max(column: \"_value\")" +
                 "|> rename(columns: {_value: \"max_value\"})" +
 
-                "min_values = from(bucket: \""+ client +"\")" +
+                "min_values = from(bucket: \"week\")" +
                 "|> range(start: -30m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> min(column: \"_value\")" +
                 "|> rename(columns: {_value: \"min_value\"})" +
@@ -201,16 +235,18 @@ public class PageMessageService {
         }
         outMap.put("AIR_OUT_MPA",recordsList);
         //VACUUM
-        query = "max_values = from(bucket: \""+ client +"\")" +
+        query = "max_values = from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> max(column: \"_value\")" +
                 "|> rename(columns: {_value: \"max_value\"})" +
 
-                "min_values = from(bucket: \""+ client +"\")" +
+                "min_values = from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> min(column: \"_value\")" +
                 "|> rename(columns: {_value: \"min_value\"})" +
@@ -233,16 +269,18 @@ public class PageMessageService {
         }
         outMap.put("VACUUM",recordsList);
         //MOTOR
-        query = "max_values = from(bucket: \""+ client +"\")" +
+        query = "max_values = from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> max(column: \"_value\")" +
                 "|> rename(columns: {_value: \"max_value\"})" +
 
-                "min_values = from(bucket: \""+ client +"\")" +
+                "min_values = from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> min(column: \"_value\")" +
                 "|> rename(columns: {_value: \"min_value\"})" +
@@ -265,9 +303,10 @@ public class PageMessageService {
         }
         outMap.put("MOTOR",recordsList);
         // air_in_kpa
-        query = "from(bucket: \"" + client + "\")" +
+        query = "from(bucket: \"week\")" +
                 "|> range(start: -1m, stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> mean(column: \"_value\")" +
                 "|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
@@ -293,9 +332,10 @@ public class PageMessageService {
 
     public String machineMotor() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
-        String query = "from(bucket: \"" + client +"\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -2m, stop: now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"MOTOR\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -305,9 +345,10 @@ public class PageMessageService {
     public String machineAirInKpa() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -24s, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_IN_KPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -317,9 +358,10 @@ public class PageMessageService {
     public String machinAirOutKpa() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -10m, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_KPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -329,9 +371,10 @@ public class PageMessageService {
     public String machineAirOutMpa() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -4m, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_MPA\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -341,9 +384,10 @@ public class PageMessageService {
     public String machineVacuum() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -4m, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"VACUUM\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -353,9 +397,10 @@ public class PageMessageService {
     public String machineWater() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -40s, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"WATER\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"WATER\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -365,9 +410,10 @@ public class PageMessageService {
     public String machineAbrasion() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -1d, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"ABRASION\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -377,9 +423,10 @@ public class PageMessageService {
     public String machineLoad() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -24m, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"LOAD\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"LOAD\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -389,9 +436,10 @@ public class PageMessageService {
     public String machineVelocity() throws Exception {
         String client = "CLIENT" + this.connectionMessage;
 
-        String query = "from(bucket: \""+ client + "\")" +
+        String query = "from(bucket: \"week\")" +
                 "  |> range(start: -24m, stop:now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"VELOCITY\")" +
+                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                "|> filter(fn: (r) => r[\"big_name\"] == \"VELOCITY\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
                 "  |> limit(n:10)";
@@ -503,9 +551,10 @@ public class PageMessageService {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Object> sensorAverages = new HashMap<>();
             for (String sensor : sensors) {
-                String query = "from(bucket: \"" + client + "\")" +
+                String query = "from(bucket: \"week\")" +
                         "  |> range(start: -2m)" +
-                        "  |> filter(fn: (r) => r._measurement == \"" + sensor + "\")" +
+                        "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                        "|> filter(fn: (r) => r[\"big_name\"] == \""+ sensor +"\")" +
                         "  |> last()" +
                         "  |> group(columns: [\"name\"])" +
                         "  |> last()";
@@ -523,5 +572,34 @@ public class PageMessageService {
             }
             return sensorAverages;
         });
+    }
+
+    public String mainTest() {
+        String query = "from(bucket: \"week\")" +
+                "|> group(columns: [\"_measurement\", \"big_name\"])" +
+                "|> aggregateWindow(every: 2m, fn: mean, createEmpty: false)" +
+                "|> pivot(rowKey:[\"_time\"], columnKey: [\"_measurement\", \"big_name\"], valueColumn: \"_value\")" +
+                " |> last()";
+        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+        Map<String, Map<String, Double>> result = new HashMap<>();
+
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                String client = record.getMeasurement();
+                String bigName = record.getValueByKey("big_name").toString();
+
+                Map<String, Double> clientData = result.getOrDefault(client, new HashMap<>());
+                clientData.put(bigName, (Double) record.getValue());
+                result.put(client, clientData);
+            }
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
