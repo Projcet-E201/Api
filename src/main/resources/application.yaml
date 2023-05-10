@@ -22,3 +22,9 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # *으로 표기하면 전체
