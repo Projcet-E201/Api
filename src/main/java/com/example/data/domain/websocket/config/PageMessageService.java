@@ -37,7 +37,6 @@ public class PageMessageService {
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
         Map<String, Object> recordMap = null;
-        Map<String, Object> innerValueMap = null;
         String currentPrefix = null;
 
         for (FluxTable table : tables) {
@@ -64,7 +63,7 @@ public class PageMessageService {
                     recordsList.add(recordMap);  // 생성된 딕셔너리를 리스트에 추가
                 }
                 if (currentPrefix.equals("string")) {
-                    innerValueMap = new HashMap<>();
+                    Map<String, Object> innerValueMap = new HashMap<>();
                     innerValueMap.put("time", valuesMap.get("time"));
                     innerValueMap.put("value", valuesMap.get("value"));
                     recordMap.put(name, innerValueMap);
@@ -73,7 +72,7 @@ public class PageMessageService {
                 }
             }
         }
-
+        System.out.println("recordMap = " + recordMap);
         // 마지막 recordMap에 대해 누락된 키를 추가합니다.
         if (recordMap != null) {
             for (int i = 1; i <= 10; i++) {
@@ -479,7 +478,7 @@ public class PageMessageService {
     // 함수
     private String queryClientToJson(String query) throws JsonProcessingException {
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        System.out.println("tables = " + tables);
+//        System.out.println("tables = " + tables);
         List<Map<String, Object>> recordsList = new ArrayList<>();
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
@@ -492,7 +491,7 @@ public class PageMessageService {
                 recordsList.add(recordMap);
             }
         }
-        System.out.println("recordsList = " + recordsList);
+//        System.out.println("recordsList = " + recordsList);
         ObjectMapper mapper = new ObjectMapper();
         // Time 순으로 정렬
         Comparator<Map<String, Object>> timeNameComparator = new Comparator<>() {
@@ -512,8 +511,6 @@ public class PageMessageService {
         };
         // recordsList를 정렬
         recordsList.sort(timeNameComparator);
-
-        //        System.out.println("json = " + json);
         return mapper.writeValueAsString(recordsList);
     }
 
@@ -587,15 +584,14 @@ public class PageMessageService {
                 "|> group(columns: [\"_measurement\", \"big_name\"])" +
                 "|> aggregateWindow(every: 2m, fn: mean, createEmpty: false)" +
                 "|> pivot(rowKey:[\"_time\"], columnKey: [\"_measurement\", \"big_name\"], valueColumn: \"_value\")" +
-                " |> last()";
+                "|> last()";
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         Map<String, Map<String, Double>> result = new HashMap<>();
 
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
                 String client = record.getMeasurement();
-                String bigName = record.getValueByKey("big_name").toString();
-
+                String bigName = Objects.requireNonNull(record.getValueByKey("big_name")).toString();
                 Map<String, Double> clientData = result.getOrDefault(client, new HashMap<>());
                 clientData.put(bigName, (Double) record.getValue());
                 result.put(client, clientData);
