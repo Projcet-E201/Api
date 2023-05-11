@@ -1,21 +1,21 @@
-package com.example.data.domain.websocket.config;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class ScheduledTasks {
-
-    private final SimpMessagingTemplate messagingTemplate;
-    private final PageMessageService pageMessageService;
-    private final WebSocketSessionManager sessionManager;
-
+//package com.example.data.domain.websocket.config;
+//
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.messaging.simp.SimpMessagingTemplate;
+//import org.springframework.scheduling.annotation.Scheduled;
+//import org.springframework.stereotype.Component;
+//
+//@Component
+//@RequiredArgsConstructor
+//public class ScheduledTasks {
+//
+//    private final SimpMessagingTemplate messagingTemplate;
+//    private final PageMessageService pageMessageService;
+//    private final WebSocketSessionManager sessionManager;
+//
 //    @Scheduled(fixedRate = 1000) // 1000ms(1초)마다 메서드를 실행
 //    public void sendPeriodicMessages() throws Exception {
-
+//
 //        String machineState = pageMessageService.machineState();
 //        messagingTemplate.convertAndSend("/client/machine/state", machineState);
 //
@@ -45,13 +45,13 @@ public class ScheduledTasks {
 //
 //        String machineVelocity = pageMessageService.machineVelocity();
 //        messagingTemplate.convertAndSend("/client/machine/velocity", machineVelocity);
-
+//
 //    }
-
+//
 //    @Scheduled(fixedRate = 10000) // 1000ms(10초)마다 메서드를 실행
 //    public void sendPeriodicMainMessages() throws Exception {
 //        String mainMachine = pageMessageService.mainMachine();
 //        messagingTemplate.convertAndSend("/client/main/machine", mainMachine);
 //    }
-
-}
+//
+//}
