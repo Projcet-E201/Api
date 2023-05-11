@@ -72,7 +72,6 @@ public class PageMessageService {
                 }
             }
         }
-        System.out.println("recordMap = " + recordMap);
         // 마지막 recordMap에 대해 누락된 키를 추가합니다.
         if (recordMap != null) {
             for (int i = 1; i <= 10; i++) {
@@ -136,7 +135,7 @@ public class PageMessageService {
         outMap.put("LOAD",recordsList);
         //ABRASION
         query = "from(bucket: \"week\")" +
-                "|> range(start: -6h, stop: now())" +
+                "|> range(start: -2d, stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
                 "|> group(columns: [\"name\"])" +
@@ -240,7 +239,7 @@ public class PageMessageService {
 //                System.out.println("recordMap = " + recordMap);
             }
         }
-        outMap.put("AIR_OUT_MPA",recordsList);
+        outMap.put("AIR_OUT_KPA",recordsList);
         //VACUUM
         query = "max_values = from(bucket: \"week\")" +
                 "|> range(start: -5m, stop: now())" +
@@ -418,7 +417,7 @@ public class PageMessageService {
         String client = "CLIENT" + this.connectionMessage;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -1d, stop:now())" +
+                "  |> range(start: -2d, stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
                 "  |> group(columns:[\"name\"]) " +
