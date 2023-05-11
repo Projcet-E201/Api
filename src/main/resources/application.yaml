@@ -1,7 +1,8 @@
-spring:
+server:
   servlet:
     context-path: /api
-    
+
+spring:
   profiles:
     active: local, secret
   websocket:
