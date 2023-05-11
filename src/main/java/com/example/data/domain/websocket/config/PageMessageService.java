@@ -32,10 +32,12 @@ public class PageMessageService {
                 "  |> range(start: -2m, stop: now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client +"\")" +
                 "  |> group(columns:[\"name\"]) " +
-                "  |> last()";
+                "  |> last()" +
+                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
         Map<String, Object> recordMap = null;
+        Map<String, Object> innerValueMap = null;
         String currentPrefix = null;
 
         for (FluxTable table : tables) {
@@ -61,8 +63,14 @@ public class PageMessageService {
                     recordMap = new HashMap<>();
                     recordsList.add(recordMap);  // 생성된 딕셔너리를 리스트에 추가
                 }
-
-                recordMap.put(name, valuesMap.get("_value"));
+                if (currentPrefix.equals("string")) {
+                    innerValueMap = new HashMap<>();
+                    innerValueMap.put("time", valuesMap.get("time"));
+                    innerValueMap.put("value", valuesMap.get("value"));
+                    recordMap.put(name, innerValueMap);
+                } else {
+                    recordMap.put(name, valuesMap.get("value"));
+                }
             }
         }
 
