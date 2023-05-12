@@ -1,5 +1,6 @@
 package com.example.data.domain.websocket.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -8,6 +9,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 @Configuration
+@Slf4j
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
@@ -24,9 +26,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // server -> client
         // ex /plans/greeting (서버가 보냄)
         config.enableSimpleBroker("/client");
+        log.info("MessageBroker is configured with simple broker: /client and application destination prefixes: /client");
         // client -> server
         // ex /send/hello (클라이언트가 보냄)
         config.setApplicationDestinationPrefixes("/server");
+        log.info("MessageBroker is configured with simple broker: /server and application destination prefixes: /server");
     }
 
     @Override

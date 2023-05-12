@@ -1,5 +1,6 @@
 package com.example.data.domain.websocket.config;
 
+import com.example.data.util.constants.TimeInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.client.InfluxDBClient;
@@ -29,7 +30,7 @@ public class DataWebSocketController {
         List<Map<String, Object>> outList = new ArrayList<>();
         Map<String, Object> outMap = new HashMap<>();
         String query = "from(bucket: \"week\")" +
-                "|> range(start: -5m, stop: now())" +
+                "|> range(start: -"+ TimeInfo.MACHINE_SENSOR_VELOCITY_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"VELOCITY\")" +
                 "|> group(columns: [\"name\"])" +
@@ -49,7 +50,7 @@ public class DataWebSocketController {
         outMap.put("VELOCITY",recordsList);
         // Load
         query = "from(bucket: \"week\")" +
-                "|> range(start: -5m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_LOAD_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"LOAD\")" +
                 "|> group(columns: [\"name\"])" +
@@ -69,7 +70,7 @@ public class DataWebSocketController {
         outMap.put("LOAD",recordsList);
         //ABRASION
         query = "from(bucket: \"week\")" +
-                "|> range(start: -2d, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_ABRASION_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
                 "|> group(columns: [\"name\"])" +
@@ -89,7 +90,7 @@ public class DataWebSocketController {
         outMap.put("ABRASION",recordsList);
         //WATER
         query = "from(bucket: \"week\")" +
-                "|> range(start: -1m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_WATER_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"WATER\")" +
                 "|> group(columns: [\"name\"])" +
@@ -109,7 +110,7 @@ public class DataWebSocketController {
         outMap.put("WATER",recordsList);
         //AIR_OUT_KPA
         query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -10m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_MPA_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_MPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -117,7 +118,7 @@ public class DataWebSocketController {
                 "|> rename(columns: {_value: \"max_value\"})" +
 
                 "min_values = from(bucket: \"week\")" +
-                "|> range(start: -10m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_MPA_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
                 "|> min(column: \"_value\")" +
@@ -142,7 +143,7 @@ public class DataWebSocketController {
         outMap.put("AIR_OUT_MPA",recordsList);
         //AIR_OUT_MPA
         query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -30m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_KPA_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -150,7 +151,7 @@ public class DataWebSocketController {
                 "|> rename(columns: {_value: \"max_value\"})" +
 
                 "min_values = from(bucket: \"week\")" +
-                "|> range(start: -30m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_KPA_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -176,7 +177,7 @@ public class DataWebSocketController {
         outMap.put("AIR_OUT_KPA",recordsList);
         //VACUUM
         query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -5m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_VACUUM_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -184,7 +185,7 @@ public class DataWebSocketController {
                 "|> rename(columns: {_value: \"max_value\"})" +
 
                 "min_values = from(bucket: \"week\")" +
-                "|> range(start: -5m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_VACUUM_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -210,7 +211,7 @@ public class DataWebSocketController {
         outMap.put("VACUUM",recordsList);
         //MOTOR
         query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -5m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_MOTOR_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -218,7 +219,7 @@ public class DataWebSocketController {
                 "|> rename(columns: {_value: \"max_value\"})" +
 
                 "min_values = from(bucket: \"week\")" +
-                "|> range(start: -5m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_MOTOR_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -244,7 +245,7 @@ public class DataWebSocketController {
         outMap.put("MOTOR",recordsList);
         // air_in_kpa
         query = "from(bucket: \"week\")" +
-                "|> range(start: -1m, stop: now())" +
+                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_IN_KPA_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
                 "|> group(columns: [\"generate_time\"])" +
@@ -275,7 +276,7 @@ public class DataWebSocketController {
     public String machineState(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"day\")" +
-                "  |> range(start: -2h, stop: now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_STATE_START +", stop: now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client +"\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> last()" +
@@ -340,7 +341,7 @@ public class DataWebSocketController {
     public String machineMotor(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -2m, stop: now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_MOTOR_START + ", stop: now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -356,7 +357,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -24s, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_AIR_IN_KPA_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -371,7 +372,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -10m, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_AIR_OUT_KPA_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -386,7 +387,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -4m, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_AIR_OUT_MPA_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_MPA\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -401,7 +402,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -4m, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_VACUUM_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -416,7 +417,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -40s, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_WATER_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"WATER\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -431,7 +432,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -2d, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_ABRASION_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -445,7 +446,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -24m, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_LOAD_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"LOAD\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -460,7 +461,7 @@ public class DataWebSocketController {
         String client = "CLIENT" + data;
 
         String query = "from(bucket: \"week\")" +
-                "  |> range(start: -24m, stop:now())" +
+                "  |> range(start: -"+ TimeInfo.MACHINE_VELOCITY_START + ", stop:now())" +
                 "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                 "|> filter(fn: (r) => r[\"big_name\"] == \"VELOCITY\")" +
                 "  |> group(columns:[\"name\"]) " +
@@ -568,7 +569,7 @@ public class DataWebSocketController {
             Map<String, Object> sensorAverages = new HashMap<>();
             for (String sensor : sensors) {
                 String query = "from(bucket: \"week\")" +
-                        "  |> range(start: -2m)" +
+                        "  |> range(start: -"+ TimeInfo.MAIN_MACHINE_START + ")" +
                         "  |> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
                         "  |> filter(fn: (r) => r[\"big_name\"] == \""+ sensor +"\")" +
                         "  |> last()" +
@@ -589,33 +590,9 @@ public class DataWebSocketController {
             return sensorAverages;
         });
     }
-    public String mainTest() {
-        String query = "from(bucket: \"week\")" +
-                "|> range(start: -2m)" +
-                "|> group(columns: [\"_measurement\", \"big_name\"])" +
-                "|> aggregateWindow(every: 2m, fn: mean, createEmpty: false)" +
-                "|> pivot(rowKey:[\"_time\"], columnKey: [\"_measurement\", \"big_name\"], valueColumn: \"_value\")" +
-                "|> last()";
-        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        Map<String, Map<String, Double>> result = new HashMap<>();
-
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                String client = record.getMeasurement();
-                String bigName = Objects.requireNonNull(record.getValueByKey("big_name")).toString();
-                Map<String, Double> clientData = result.getOrDefault(client, new HashMap<>());
-                clientData.put(bigName, (Double) record.getValue());
-                result.put(client, clientData);
-            }
-        }
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(result);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
+//    @MessageMapping("/machine/history")
+//    @SendTo("/client/machine/history")
+//    public String machineHistory(String data) throws Exception {
+//        return null;
+//    }
 }
