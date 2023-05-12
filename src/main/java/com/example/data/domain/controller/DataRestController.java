@@ -1,4 +1,4 @@
-package com.example.data.domain.websocket.config;
+package com.example.data.domain.controller;
 
 import com.example.data.util.constants.TimeInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -7,9 +7,6 @@ import com.influxdb.client.InfluxDBClient;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -17,8 +14,6 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class DataRestController {
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
     private InfluxDBClient influxDBClient;
 
@@ -271,7 +266,7 @@ public class DataRestController {
     }
 
     @GetMapping("/machine/{data}/state")
-    public String machineState(@PathVariable String data) {
+    public List<Map<String, Object>> machineState(@PathVariable String data) {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"day\")" +
                 "  |> range(start: -"+ TimeInfo.MACHINE_STATE_START +", stop: now())" +
@@ -282,7 +277,7 @@ public class DataRestController {
         List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
         List<Map<String, Object>> recordsList = new ArrayList<>();
         Map<String, Object> recordMap = null;
-        String currentPrefix = null;
+        String currentPrefix = "boolean";
 
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
@@ -294,7 +289,6 @@ public class DataRestController {
 
                 // Name의 접두어가 변경되었거나 recordMap이 아직 생성되지 않은 경우
                 if (recordMap == null || !prefix.equals(currentPrefix)) {
-                    currentPrefix = prefix;
 
                     // 이전 recordMap에 대해 누락된 키를 추가합니다.
                     if (recordMap != null) {
@@ -302,10 +296,10 @@ public class DataRestController {
                             String key = currentPrefix + i;
                             recordMap.putIfAbsent(key, null);
                         }
+                        recordsList.add(recordMap);
                     }
-
+                    currentPrefix = prefix;
                     recordMap = new HashMap<>();
-                    recordsList.add(recordMap);  // 생성된 딕셔너리를 리스트에 추가
                 }
                 if (currentPrefix.equals("string")) {
                     Map<String, Object> innerValueMap = new HashMap<>();
@@ -323,15 +317,11 @@ public class DataRestController {
                 String key = currentPrefix + i;
                 recordMap.putIfAbsent(key, null);
             }
+            recordsList.add(recordMap);
+            System.out.println("recordsList = " + recordsList);
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(recordsList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return recordsList;
     }
 
     @GetMapping("/machine/{date}/motor")

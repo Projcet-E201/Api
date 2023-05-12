@@ -22,4 +22,4 @@ logging:
       hibernate:
         type:
           descriptor:
-            sql: debug
+            sql: info

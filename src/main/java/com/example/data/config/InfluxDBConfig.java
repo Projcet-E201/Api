@@ -1,4 +1,4 @@
-package com.example.data.domain.influxdb.config;
+package com.example.data.config;
 
 
 import com.influxdb.client.*;
@@ -26,10 +26,15 @@ public class InfluxDBConfig {
     private String token;
 
 
+
     @Bean
     public InfluxDBClient influxDBClient() {
-        return InfluxDBClientFactory.create(url, token.toCharArray());
-    }
+        InfluxDBClientOptions options = InfluxDBClientOptions.builder()
+                .url(url)
+                .authenticateToken(token.toCharArray())
+                .build();
 
+        return InfluxDBClientFactory.create(options);
+    }
 }
 
