@@ -13,7 +13,7 @@ public class TimeInfo {
     public static final String MACHINE_SENSOR_AIR_IN_KPA_START = "5m";
 
     // STATE
-    public static final String MACHINE_STATE_START = "2h";
+    public static final String MACHINE_STATE_START = "2h"; // 20m
 
     // MACHINE
     public static final String MACHINE_MOTOR_START = "2m";
@@ -27,7 +27,7 @@ public class TimeInfo {
     public static final String MACHINE_VELOCITY_START = "24m";
 
     // MAIN
-    public static final String MAIN_MACHINE_START = "2m";
+    public static final String MAIN_MACHINE_START = "20m";// "2m";
 
 
 
