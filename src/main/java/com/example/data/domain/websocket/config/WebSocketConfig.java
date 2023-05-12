@@ -22,11 +22,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-
         // server -> client
         // ex /plans/greeting (서버가 보냄)
         config.enableSimpleBroker("/client");
-
         // client -> server
         // ex /send/hello (클라이언트가 보냄)
         config.setApplicationDestinationPrefixes("/server");
@@ -36,9 +34,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // 클라이언트에서 socket 접속을 위한 경로
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+        registry.addEndpoint("/ws-main").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws-sensor").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws-state").setAllowedOriginPatterns("*").withSockJS();
 //        System.out.println("registry 연결고리" + registry);
     }
 }
