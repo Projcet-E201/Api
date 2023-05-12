@@ -273,7 +273,7 @@ public class DataWebSocketController {
 
     @MessageMapping("/machine/state")
     @SendTo("/client/machine/state")
-    public String machineState(@RequestBody String data) throws Exception {
+    public String machineState(@RequestBody String data) {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"day\")" +
                 "  |> range(start: -"+ TimeInfo.MACHINE_STATE_START +", stop: now())" +
@@ -330,7 +330,7 @@ public class DataWebSocketController {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.writeValueAsString(recordsList);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

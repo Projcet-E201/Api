@@ -26,11 +26,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // server -> client
         // ex /plans/greeting (서버가 보냄)
         config.enableSimpleBroker("/client");
-        log.info("MessageBroker is configured with simple broker: /client and application destination prefixes: /client");
+
         // client -> server
         // ex /send/hello (클라이언트가 보냄)
         config.setApplicationDestinationPrefixes("/server");
-        log.info("MessageBroker is configured with simple broker: /server and application destination prefixes: /server");
+
     }
 
     @Override

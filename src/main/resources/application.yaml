@@ -1,4 +1,6 @@
 server:
+  tomcat:
+    max-threads: 500
   servlet:
     context-path: /api
 
