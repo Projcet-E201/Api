@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableScheduling
 public class DataApplication {
 	@PostConstruct
 	public void started() {

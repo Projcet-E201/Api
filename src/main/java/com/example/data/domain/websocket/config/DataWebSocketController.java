@@ -11,8 +11,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -277,7 +275,7 @@ public class DataWebSocketController {
     public String machineState(@RequestBody String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"day\")" +
-                "  |> range(start: -2m, stop: now())" +
+                "  |> range(start: -2h, stop: now())" +
                 "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client +"\")" +
                 "  |> group(columns:[\"name\"]) " +
                 "  |> last()" +
@@ -470,11 +468,11 @@ public class DataWebSocketController {
                 "  |> limit(n:10)";
         return queryClientToJson(query);
     }
-
     @MessageMapping("/main/machine")
     @SendTo("/client/main/machine")
     public String MainMachine(@RequestBody String data) throws Exception {
         // 기기 각각의 최신값의 평균을 구하는 코드
+        System.out.println("start data = " + data);
         Map<String, Object> outMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
         List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM", "VELOCITY", "WATER");
@@ -533,12 +531,6 @@ public class DataWebSocketController {
         return mapper.writeValueAsString(recordsList);
     }
 
-    private Object timeToSecond(Object timestamp) {
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd/HH:mm:ss.SSS");
-        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd/HH:mm:ss");
-        return LocalDateTime.parse((CharSequence) timestamp, inputFormatter).format(outputFormatter);
-    }
-
     static class NameComparator implements Comparator<String> {
         @Override
         public int compare(String s1, String s2) {
@@ -577,8 +569,8 @@ public class DataWebSocketController {
             for (String sensor : sensors) {
                 String query = "from(bucket: \"week\")" +
                         "  |> range(start: -2m)" +
-                        "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                        "|> filter(fn: (r) => r[\"big_name\"] == \""+ sensor +"\")" +
+                        "  |> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
+                        "  |> filter(fn: (r) => r[\"big_name\"] == \""+ sensor +"\")" +
                         "  |> last()" +
                         "  |> group(columns: [\"name\"])" +
                         "  |> last()";
@@ -597,9 +589,9 @@ public class DataWebSocketController {
             return sensorAverages;
         });
     }
-
     public String mainTest() {
         String query = "from(bucket: \"week\")" +
+                "|> range(start: -2m)" +
                 "|> group(columns: [\"_measurement\", \"big_name\"])" +
                 "|> aggregateWindow(every: 2m, fn: mean, createEmpty: false)" +
                 "|> pivot(rowKey:[\"_time\"], columnKey: [\"_measurement\", \"big_name\"], valueColumn: \"_value\")" +
