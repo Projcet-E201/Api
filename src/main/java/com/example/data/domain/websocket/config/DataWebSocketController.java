@@ -476,7 +476,7 @@ public class DataWebSocketController {
         System.out.println("start data = " + data);
         Map<String, Object> outMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM", "VELOCITY", "WATER");
+        List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM", "VELOCITY", "WATER", "ABRASION");
 
         List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
 
