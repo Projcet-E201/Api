@@ -9,6 +9,7 @@ spring:
     active: local, secret
   influxdb:
     connectionTimeoutMs: 5000
+    readTimeout: 5000
 #  websocket:
 #    connection-timeout: 5000000
 #    max-binary-message-buffer-size: 50000
