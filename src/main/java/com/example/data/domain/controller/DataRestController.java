@@ -17,7 +17,7 @@ public class DataRestController {
     @Autowired
     private InfluxDBClient influxDBClient;
 
-    @GetMapping("/machine/sensor")
+    @GetMapping("/machine/{data}/sensor")
     public String machineSensor(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
         // velocity
