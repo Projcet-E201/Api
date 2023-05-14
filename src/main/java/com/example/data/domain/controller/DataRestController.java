@@ -324,7 +324,7 @@ public class DataRestController {
         return recordsList;
     }
 
-    @GetMapping("/machine/{date}/motor")
+    @GetMapping("/machine/{data}/motor")
     public String machineMotor(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
         String query = "from(bucket: \"week\")" +
@@ -338,7 +338,7 @@ public class DataRestController {
     }
 
 
-    @GetMapping("/machine/{date}/air_in_kpa")
+    @GetMapping("/machine/{data}/air_in_kpa")
     public String machinAirInKpa(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -352,7 +352,7 @@ public class DataRestController {
         return queryClientToJson(query);
     }
 
-    @GetMapping("/machine/{date}/air_out_kpa")
+    @GetMapping("/machine/{data}/air_out_kpa")
     public String machinAirOutKpa(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -366,7 +366,7 @@ public class DataRestController {
         return queryClientToJson(query);
     }
 
-    @GetMapping("/machine/{date}/air_out_mpa")
+    @GetMapping("/machine/{data}/air_out_mpa")
     public String machinAirOutMpa(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -380,7 +380,7 @@ public class DataRestController {
         return queryClientToJson(query);
     }
 
-    @GetMapping("/machine/{date}/vacuum")
+    @GetMapping("/machine/{data}/vacuum")
     public String machinVacuum(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -394,7 +394,7 @@ public class DataRestController {
         return queryClientToJson(query);
     }
 
-    @GetMapping("/machine/{date}/water")
+    @GetMapping("/machine/{data}/water")
     public String machinWater(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -408,7 +408,7 @@ public class DataRestController {
         return queryClientToJson(query);
     }
 
-    @GetMapping("/machine/{date}/abrasion")
+    @GetMapping("/machine/{data}/abrasion")
     public String machinAbrasion(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -421,7 +421,7 @@ public class DataRestController {
                 "  |> limit(n:10)";
         return queryClientToJson(query);
     }
-    @GetMapping("/machine/{date}/load")
+    @GetMapping("/machine/{data}/load")
     public String machinLoad(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
@@ -435,7 +435,7 @@ public class DataRestController {
         return queryClientToJson(query);
     }
 
-    @GetMapping("/machine/{date}/velocity")
+    @GetMapping("/machine/{data}/velocity")
     public String machinVelocity(@PathVariable String data) throws Exception {
         String client = "CLIENT" + data;
 
