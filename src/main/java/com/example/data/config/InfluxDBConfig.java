@@ -30,9 +30,10 @@ public class InfluxDBConfig {
     @Bean
     public InfluxDBClient influxDBClient() {
         OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)       // 모두 default 10
+                .connectTimeout(40, TimeUnit.MINUTES)       // 모두 default 10
                 .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS);
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true);
 
         InfluxDBClientOptions options = InfluxDBClientOptions.builder()
                 .url(url)
