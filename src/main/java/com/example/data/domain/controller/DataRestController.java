@@ -164,56 +164,56 @@ public class DataRestController {
 	}
 
 	@GetMapping("/machine/{data}/air_in_kpa")
-	public String machinAirInKpa(@PathVariable String data) throws Exception {
+	public String machineAirInKpa(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.AIR_IN_KPA, TimeInfo.MACHINE_AIR_IN_KPA_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/air_out_kpa")
-	public String machinAirOutKpa(@PathVariable String data) throws Exception {
+	public String machineAirOutKpa(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.AIR_OUT_KPA, TimeInfo.MACHINE_AIR_OUT_KPA_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/air_out_mpa")
-	public String machinAirOutMpa(@PathVariable String data) throws Exception {
+	public String machineAirOutMpa(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.AIR_OUT_MPA, TimeInfo.MACHINE_AIR_OUT_MPA_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/vacuum")
-	public String machinVacuum(@PathVariable String data) throws Exception {
+	public String machineVacuum(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.VACUUM, TimeInfo.MACHINE_VACUUM_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/water")
-	public String machinWater(@PathVariable String data) throws Exception {
+	public String machineWater(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.WATER, TimeInfo.MACHINE_WATER_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/abrasion")
-	public String machinAbrasion(@PathVariable String data) throws Exception {
+	public String machineAbrasion(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.ABRASION, TimeInfo.MACHINE_ABRASION_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/load")
-	public String machinLoad(@PathVariable String data) throws Exception {
+	public String machineLoad(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.LOAD, TimeInfo.MACHINE_ABRASION_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/velocity")
-	public String machinVelocity(@PathVariable String data) throws Exception {
+	public String machineVelocity(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
 		String query = buildQuery(client, DataType.VELOCITY, TimeInfo.MACHINE_ABRASION_START);
 		return queryClientToJson(query);
