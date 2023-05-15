@@ -449,9 +449,9 @@ public class DataRestController {
         return queryClientToJson(query);
     }
     @GetMapping("/main/machine")
-    public String MainMachine(@PathVariable String data) throws Exception {
+    public String MainMachine() throws Exception {
         // 기기 각각의 최신값의 평균을 구하는 코드
-        System.out.println("start data = " + data);
+        System.out.println("start data = ");
         Map<String, Object> outMap = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
         List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM", "VELOCITY", "WATER", "ABRASION");
