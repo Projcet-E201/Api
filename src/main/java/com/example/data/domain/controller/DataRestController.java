@@ -8,6 +8,7 @@ import com.influxdb.client.InfluxDBClient;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +24,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 public class DataRestController {
 
-	@Autowired
-	private InfluxDBClient influxDBClient;
+	private final InfluxDBClient influxDBClient;
 
 	@GetMapping("/machine/{data}/sensor")
 	public String machineSensor(@PathVariable String data) throws Exception {
