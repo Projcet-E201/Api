@@ -1,576 +1,430 @@
 package com.example.data.domain.controller;
 
+import com.example.data.util.constants.DataType;
 import com.example.data.util.constants.TimeInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 public class DataRestController {
-    @Autowired
-    private InfluxDBClient influxDBClient;
 
-    @GetMapping("/machine/{data}/sensor")
-    public String machineSensor(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
-        // velocity
-        List<Map<String, Object>> outList = new ArrayList<>();
-        Map<String, Object> outMap = new HashMap<>();
-        String query = "from(bucket: \"week\")" +
-                "|> range(start: -"+ TimeInfo.MACHINE_SENSOR_VELOCITY_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"VELOCITY\")" +
-                "|> group(columns: [\"name\"])" +
-                "|> last()" +
-                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
+	@Autowired
+	private InfluxDBClient influxDBClient;
 
-        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        List<Map<String, Object>> recordsList = new ArrayList<>();
-        Map<String, Object> recordMap = new HashMap<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
-            }
-        }
-        recordsList.add(recordMap);
-        outMap.put("VELOCITY",recordsList);
-        // Load
-        query = "from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_LOAD_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"LOAD\")" +
-                "|> group(columns: [\"name\"])" +
-                "|> last()" +
-                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
+	private StringBuilder queryBuilder = new StringBuilder(500);
 
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        recordMap = new HashMap<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
-            }
-        }
-        recordsList.add(recordMap);
-        outMap.put("LOAD",recordsList);
-        //ABRASION
-        query = "from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_ABRASION_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
-                "|> group(columns: [\"name\"])" +
-                "|> last()" +
-                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
+	@GetMapping("/machine/{data}/sensor")
+	public String machineSensor(@PathVariable String data) throws Exception {
 
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        recordMap = new HashMap<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
-            }
-        }
-        recordsList.add(recordMap);
-        outMap.put("ABRASION",recordsList);
-        //WATER
-        query = "from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_WATER_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"WATER\")" +
-                "|> group(columns: [\"name\"])" +
-                "|> last()" +
-                "|> map(fn: (r) => ({value:r._value,name:r.name}))";
+		String client = "CLIENT" + data;
 
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        recordMap = new HashMap<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
-            }
-        }
-        recordsList.add(recordMap);
-        outMap.put("WATER",recordsList);
-        //AIR_OUT_KPA
-        query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_MPA_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_MPA\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> max(column: \"_value\")" +
-                "|> rename(columns: {_value: \"max_value\"})" +
+		// 임시코드
+		List<Map<String, Object>> outList = new ArrayList<>();
+		Map<String, Object> outMap = new HashMap<>();
 
-                "min_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_MPA_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \"AIR_OUT_MPA\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> min(column: \"_value\")" +
-                "|> rename(columns: {_value: \"min_value\"})" +
+		String query = "";
+		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+		List<Map<String, Object>> recordsList = new ArrayList<>();
+		Map<String, Object> recordMap = new HashMap<>();
 
-                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
-                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
-                "|> limit(n: 10)";
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("time", valuesMap.get("time"));
-                recordMap.put("max_value", valuesMap.get("max_value"));
-                recordMap.put("min_value", valuesMap.get("min_value"));
-                recordsList.add(recordMap);
-//                System.out.println("recordMap = " + recordMap);
-            }
-        }
-        outMap.put("AIR_OUT_MPA",recordsList);
-        //AIR_OUT_MPA
-        query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_KPA_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> max(column: \"_value\")" +
-                "|> rename(columns: {_value: \"max_value\"})" +
+		// VELOCITY
+		executeAndExtractData(client, DataType.VELOCITY, TimeInfo.MACHINE_SENSOR_VELOCITY_START, DataType.VELOCITY, outMap);
 
-                "min_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_OUT_KPA_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> min(column: \"_value\")" +
-                "|> rename(columns: {_value: \"min_value\"})" +
+		// LOAD
+		executeAndExtractData(client, DataType.LOAD, TimeInfo.MACHINE_SENSOR_LOAD_START, DataType.LOAD, outMap);
 
-                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
-                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
-                "|> limit(n: 10)";
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("time", valuesMap.get("time"));
-                recordMap.put("max_value", valuesMap.get("max_value"));
-                recordMap.put("min_value", valuesMap.get("min_value"));
-                recordsList.add(recordMap);
-//                System.out.println("recordMap = " + recordMap);
-            }
-        }
-        outMap.put("AIR_OUT_KPA",recordsList);
-        //VACUUM
-        query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_VACUUM_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> max(column: \"_value\")" +
-                "|> rename(columns: {_value: \"max_value\"})" +
+		// ABRASION
+		executeAndExtractData(client, DataType.ABRASION, TimeInfo.MACHINE_SENSOR_ABRASION_START, DataType.ABRASION, outMap);
 
-                "min_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_VACUUM_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> min(column: \"_value\")" +
-                "|> rename(columns: {_value: \"min_value\"})" +
-
-                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
-                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
-                "|> limit(n: 10)";
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("time", valuesMap.get("time"));
-                recordMap.put("max_value", valuesMap.get("max_value"));
-                recordMap.put("min_value", valuesMap.get("min_value"));
-                recordsList.add(recordMap);
-//                System.out.println("recordMap = " + recordMap);
-            }
-        }
-        outMap.put("VACUUM",recordsList);
-        //MOTOR
-        query = "max_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_MOTOR_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> max(column: \"_value\")" +
-                "|> rename(columns: {_value: \"max_value\"})" +
-
-                "min_values = from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_MOTOR_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> min(column: \"_value\")" +
-                "|> rename(columns: {_value: \"min_value\"})" +
-
-                "join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])" +
-                "|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))" +
-                "|> limit(n: 10)";
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("time", valuesMap.get("time"));
-                recordMap.put("max_value", valuesMap.get("max_value"));
-                recordMap.put("min_value", valuesMap.get("min_value"));
-                recordsList.add(recordMap);
-//                System.out.println("recordMap = " + recordMap);
-            }
-        }
-        outMap.put("MOTOR",recordsList);
-        // air_in_kpa
-        query = "from(bucket: \"week\")" +
-                "|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_IN_KPA_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
-                "|> group(columns: [\"generate_time\"])" +
-                "|> mean(column: \"_value\")" +
-                "|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
-                "|> limit(n:10)";
-        tables = influxDBClient.getQueryApi().query(query, "semse");
-        recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("time", valuesMap.get("time"));
-                recordMap.put("avg", valuesMap.get("value"));
-                recordsList.add(recordMap);
-//                System.out.println("recordMap = " + recordMap);
-            }
-        }
-        outMap.put("AIR_IN_KPA",recordsList);
-        // 마무리
-        outList.add(outMap);
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(outList);
-    }
-
-    @GetMapping("/machine/{data}/state")
-    public List<Map<String, Object>> machineState(@PathVariable String data) {
-        String client = "CLIENT" + data;
-        String query = "from(bucket: \"day\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_STATE_START +", stop: now())" +
-                "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client +"\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> last()" +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
-        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-        List<Map<String, Object>> recordsList = new ArrayList<>();
-        Map<String, Object> recordMap = null;
-        String currentPrefix = "boolean";
-
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> valuesMap = record.getValues();
-                String name = valuesMap.get("name").toString();
-
-                // Name의 접두어를 가져옵니다.
-                String prefix = name.replaceAll("([a-zA-Z]*).*", "$1");
-
-                // Name의 접두어가 변경되었거나 recordMap이 아직 생성되지 않은 경우
-                if (recordMap == null || !prefix.equals(currentPrefix)) {
-
-                    // 이전 recordMap에 대해 누락된 키를 추가합니다.
-                    if (recordMap != null) {
-                        for (int i = 1; i <= 10; i++) {
-                            String key = currentPrefix + i;
-                            recordMap.putIfAbsent(key, null);
-                        }
-                        recordsList.add(recordMap);
-                    }
-                    currentPrefix = prefix;
-                    recordMap = new HashMap<>();
-                }
-                if (currentPrefix.equals("string")) {
-                    Map<String, Object> innerValueMap = new HashMap<>();
-                    innerValueMap.put("time", valuesMap.get("time"));
-                    innerValueMap.put("value", valuesMap.get("value"));
-                    recordMap.put(name, innerValueMap);
-                } else {
-                    recordMap.put(name, valuesMap.get("value"));
-                }
-            }
-        }
-        // 마지막 recordMap에 대해 누락된 키를 추가합니다.
-        if (recordMap != null) {
-            for (int i = 1; i <= 10; i++) {
-                String key = currentPrefix + i;
-                recordMap.putIfAbsent(key, null);
-            }
-            recordsList.add(recordMap);
-            System.out.println("recordsList = " + recordsList);
-        }
-
-        return recordsList;
-    }
-
-    @GetMapping("/machine/{data}/motor")
-    public String machineMotor(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_MOTOR_START + ", stop: now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"MOTOR\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+		// WATER
+		executeAndExtractData(client, DataType.WATER, TimeInfo.MACHINE_SENSOR_WATER_START, DataType.WATER, outMap);
 
 
-    @GetMapping("/machine/{data}/air_in_kpa")
-    public String machinAirInKpa(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+		//AIR_OUT_KPA
+		executeAndExtractMinMaxData(client, DataType.AIR_OUT_MPA, TimeInfo.MACHINE_SENSOR_AIR_OUT_MPA_START, DataType.AIR_OUT_MPA,
+			influxDBClient, outMap);
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_AIR_IN_KPA_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+		//AIR_OUT_MPA
+		executeAndExtractMinMaxData(client, DataType.AIR_OUT_KPA, TimeInfo.MACHINE_SENSOR_AIR_OUT_KPA_START, DataType.AIR_OUT_KPA,
+			influxDBClient, outMap);
 
-    @GetMapping("/machine/{data}/air_out_kpa")
-    public String machinAirOutKpa(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+		//VACUUM
+		executeAndExtractMinMaxData(client, DataType.VACUUM, TimeInfo.MACHINE_SENSOR_VACUUM_START, DataType.VACUUM, influxDBClient,
+			outMap);
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_AIR_OUT_KPA_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_KPA\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+		//MOTOR
+		executeAndExtractMinMaxData(client, DataType.MOTOR, TimeInfo.MACHINE_SENSOR_MOTOR_START, DataType.MOTOR, influxDBClient,
+			outMap);
 
-    @GetMapping("/machine/{data}/air_out_mpa")
-    public String machinAirOutMpa(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_AIR_OUT_MPA_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"AIR_OUT_MPA\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+		// air_in_kpa
+		query = "from(bucket: \"week\")" +
+			"|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_IN_KPA_START + ", stop: now())" +
+			"|> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+			"|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
+			"|> group(columns: [\"generate_time\"])" +
+			"|> mean(column: \"_value\")" +
+			"|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
+			"|> limit(n:10)";
+		tables = influxDBClient.getQueryApi().query(query, "semse");
+		recordsList = new ArrayList<>();
+		for (FluxTable table : tables) {
+			for (FluxRecord record : table.getRecords()) {
+				recordMap = new HashMap<>();
+				Map<String, Object> valuesMap = record.getValues();
+				recordMap.put("time", valuesMap.get("time"));
+				recordMap.put("avg", valuesMap.get("value"));
+				recordsList.add(recordMap);
+				//                System.out.println("recordMap = " + recordMap);
+			}
+		}
+		outMap.put("AIR_IN_KPA", recordsList);
+		// 마무리
+		outList.add(outMap);
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(outList);
+	}
 
-    @GetMapping("/machine/{data}/vacuum")
-    public String machinVacuum(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+	@GetMapping("/machine/{data}/state")
+	public List<Map<String, Object>> machineState(@PathVariable String data) {
+		String client = "CLIENT" + data;
+		String query = "from(bucket: \"day\")" +
+			"  |> range(start: -" + TimeInfo.MACHINE_STATE_START + ", stop: now())" +
+			"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+			"  |> group(columns:[\"name\"]) " +
+			"  |> last()" +
+			"  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
+		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+		List<Map<String, Object>> recordsList = new ArrayList<>();
+		Map<String, Object> recordMap = null;
+		String currentPrefix = "boolean";
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_VACUUM_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"VACUUM\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+		for (FluxTable table : tables) {
+			for (FluxRecord record : table.getRecords()) {
+				Map<String, Object> valuesMap = record.getValues();
+				String name = valuesMap.get("name").toString();
 
-    @GetMapping("/machine/{data}/water")
-    public String machinWater(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+				// Name의 접두어를 가져옵니다.
+				String prefix = name.replaceAll("([a-zA-Z]*).*", "$1");
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_WATER_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"WATER\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+				// Name의 접두어가 변경되었거나 recordMap이 아직 생성되지 않은 경우
+				if (recordMap == null || !prefix.equals(currentPrefix)) {
 
-    @GetMapping("/machine/{data}/abrasion")
-    public String machinAbrasion(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+					// 이전 recordMap에 대해 누락된 키를 추가합니다.
+					if (recordMap != null) {
+						for (int i = 1; i <= 10; i++) {
+							String key = currentPrefix + i;
+							recordMap.putIfAbsent(key, null);
+						}
+						recordsList.add(recordMap);
+					}
+					currentPrefix = prefix;
+					recordMap = new HashMap<>();
+				}
+				if (currentPrefix.equals("string")) {
+					Map<String, Object> innerValueMap = new HashMap<>();
+					innerValueMap.put("time", valuesMap.get("time"));
+					innerValueMap.put("value", valuesMap.get("value"));
+					recordMap.put(name, innerValueMap);
+				} else {
+					recordMap.put(name, valuesMap.get("value"));
+				}
+			}
+		}
+		// 마지막 recordMap에 대해 누락된 키를 추가합니다.
+		if (recordMap != null) {
+			for (int i = 1; i <= 10; i++) {
+				String key = currentPrefix + i;
+				recordMap.putIfAbsent(key, null);
+			}
+			recordsList.add(recordMap);
+			System.out.println("recordsList = " + recordsList);
+		}
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_ABRASION_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"ABRASION\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
-    @GetMapping("/machine/{data}/load")
-    public String machinLoad(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+		return recordsList;
+	}
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_LOAD_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"LOAD\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
+	@GetMapping("/machine/{data}/motor")
+	public String machineMotor(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.MOTOR, TimeInfo.MACHINE_MOTOR_START);
+		return queryClientToJson(query);
+	}
 
-    @GetMapping("/machine/{data}/velocity")
-    public String machinVelocity(@PathVariable String data) throws Exception {
-        String client = "CLIENT" + data;
+	@GetMapping("/machine/{data}/air_in_kpa")
+	public String machinAirInKpa(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.AIR_IN_KPA, TimeInfo.MACHINE_AIR_IN_KPA_START);
+		return queryClientToJson(query);
+	}
 
-        String query = "from(bucket: \"week\")" +
-                "  |> range(start: -"+ TimeInfo.MACHINE_VELOCITY_START + ", stop:now())" +
-                "|> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                "|> filter(fn: (r) => r[\"big_name\"] == \"VELOCITY\")" +
-                "  |> group(columns:[\"name\"]) " +
-                "  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) " +
-                "  |> limit(n:10)";
-        return queryClientToJson(query);
-    }
-    @GetMapping("/main/machine")
-    public String MainMachine() throws Exception {
-        // 기기 각각의 최신값의 평균을 구하는 코드
-        System.out.println("start data = ");
-        Map<String, Object> outMap = new HashMap<>();
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM", "VELOCITY", "WATER", "ABRASION");
+	@GetMapping("/machine/{data}/air_out_kpa")
+	public String machinAirOutKpa(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.AIR_OUT_KPA, TimeInfo.MACHINE_AIR_OUT_KPA_START);
+		return queryClientToJson(query);
+	}
 
-        List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
+	@GetMapping("/machine/{data}/air_out_mpa")
+	public String machinAirOutMpa(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.AIR_OUT_MPA, TimeInfo.MACHINE_AIR_OUT_MPA_START);
+		return queryClientToJson(query);
+	}
 
-        for (int i = 1; i < 13; i++) {
-            String client = "CLIENT" + i;
-            futures.add(getSensorAveragesAsync(client, sensors));
-        }
+	@GetMapping("/machine/{data}/vacuum")
+	public String machinVacuum(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.VACUUM, TimeInfo.MACHINE_VACUUM_START);
+		return queryClientToJson(query);
+	}
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+	@GetMapping("/machine/{data}/water")
+	public String machinWater(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.WATER, TimeInfo.MACHINE_WATER_START);
+		return queryClientToJson(query);
+	}
 
-        for (int i = 1; i < 13; i++) {
-            String client = "CLIENT" + i;
-            outMap.put(client, futures.get(i - 1).get());
-        }
+	@GetMapping("/machine/{data}/abrasion")
+	public String machinAbrasion(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.ABRASION, TimeInfo.MACHINE_ABRASION_START);
+		return queryClientToJson(query);
+	}
 
-        return "[" + objectMapper.writeValueAsString(outMap) + "]";
-    }
-    private String queryClientToJson(String query) throws JsonProcessingException {
-        List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-//        System.out.println("tables = " + tables);
-        List<Map<String, Object>> recordsList = new ArrayList<>();
-        for (FluxTable table : tables) {
-            for (FluxRecord record : table.getRecords()) {
-                Map<String, Object> recordMap = new HashMap<>();
-                Map<String, Object> valuesMap = record.getValues();
-                recordMap.put("name", valuesMap.get("name"));
-                recordMap.put("value", valuesMap.get("value"));
-                Object timeSecond = (valuesMap.get("time"));
-                recordMap.put("time", timeSecond);
-                recordsList.add(recordMap);
-            }
-        }
-//        System.out.println("recordsList = " + recordsList);
-        ObjectMapper mapper = new ObjectMapper();
-        // Time 순으로 정렬
-        Comparator<Map<String, Object>> timeNameComparator = new Comparator<>() {
-            private final NameComparator nameComparator = new NameComparator();
-            @Override
-            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                // 시간 우선순위로 정렬
-                int timeComparison = ((Comparable) o1.get("time")).compareTo(o2.get("time"));
-                if (timeComparison != 0) {
-                    return timeComparison;
-                }
-                // 시간이 같은 경우 이름으로 정렬
-                String name1 = (String) o1.get("name");
-                String name2 = (String) o2.get("name");
-                return nameComparator.compare(name1, name2);
-            }
-        };
-        // recordsList를 정렬
-        recordsList.sort(timeNameComparator);
-        return mapper.writeValueAsString(recordsList);
-    }
+	@GetMapping("/machine/{data}/load")
+	public String machinLoad(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.LOAD, TimeInfo.MACHINE_ABRASION_START);
+		return queryClientToJson(query);
+	}
 
-    static class NameComparator implements Comparator<String> {
-        @Override
-        public int compare(String s1, String s2) {
-            int len1 = s1.length(), len2 = s2.length();
-            int i = 0, j = 0;
-            while (i < len1 && j < len2) {
-                // 숫자가 아닌 문자를 건너뜁니다.
-                while (i < len1 && !Character.isDigit(s1.charAt(i)))
-                    i++;
-                while (j < len2 && !Character.isDigit(s2.charAt(j)))
-                    j++;
-                if (i == len1 || j == len2) {
-                    break;
-                }
-                int num1 = 0, num2 = 0;
-                // 뒤에 붙은 숫자를 읽어옵니다.
-                while (i < len1 && Character.isDigit(s1.charAt(i))) {
-                    num1 = num1 * 10 + (s1.charAt(i) - '0');
-                    i++;
-                }
-                while (j < len2 && Character.isDigit(s2.charAt(j))) {
-                    num2 = num2 * 10 + (s2.charAt(j) - '0');
-                    j++;
-                }
-                if (num1 != num2) {
-                    return num1 - num2;
-                }
-            }
-            return s1.compareTo(s2);
-        }
-    }
+	@GetMapping("/machine/{data}/velocity")
+	public String machinVelocity(@PathVariable String data) throws Exception {
+		String client = "CLIENT" + data;
+		String query = buildQuery(client, DataType.VELOCITY, TimeInfo.MACHINE_ABRASION_START);
+		return queryClientToJson(query);
+	}
 
-    public CompletableFuture<Map<String, Object>> getSensorAveragesAsync(String client, List<String> sensors) {
-        return CompletableFuture.supplyAsync(() -> {
-            Map<String, Object> sensorAverages = new HashMap<>();
-            for (String sensor : sensors) {
-                String query = "from(bucket: \"week\")" +
-                        "  |> range(start: -"+ TimeInfo.MAIN_MACHINE_START + ")" +
-                        "  |> filter(fn: (r) => r[\"_measurement\"] == \""+ client +"\")" +
-                        "  |> filter(fn: (r) => r[\"big_name\"] == \""+ sensor +"\")" +
-                        "  |> last()" +
-                        "  |> group(columns: [\"name\"])" +
-                        "  |> last()";
-                List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+	@GetMapping("/main/machine")
+	public String MainMachine() throws Exception {
+		// 기기 각각의 최신값의 평균을 구하는 코드
+		System.out.println("start data = ");
+		Map<String, Object> outMap = new HashMap<>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM",
+			"VELOCITY", "WATER", "ABRASION");
 
-                if (!tables.isEmpty()) {
-                    FluxRecord record = tables.get(0).getRecords().get(0);
-                    if (record != null) {
-                        double value = Double.parseDouble(record.getValueByKey("_value").toString());
-                        sensorAverages.put(sensor, value);
-                    } else {
-                        System.out.println("N1o data for client: " + client + " sensor: " + sensor);
-                    }
-                }
-            }
-            return sensorAverages;
-        });
-    }
-//    @GetMapping("/machine/{date}/history")
-//    @SendTo("/client/machine/history")
-//    public String machineHistory(@PathVariable String data) throws Exception {
-//        return null;
-//    }
+		List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
+
+		for (int i = 1; i < 13; i++) {
+			String client = "CLIENT" + i;
+			futures.add(getSensorAveragesAsync(client, sensors));
+		}
+
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+		for (int i = 1; i < 13; i++) {
+			String client = "CLIENT" + i;
+			outMap.put(client, futures.get(i - 1).get());
+		}
+
+		return "[" + objectMapper.writeValueAsString(outMap) + "]";
+	}
+
+	private String queryClientToJson(String query) throws JsonProcessingException {
+		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+		//        System.out.println("tables = " + tables);
+		List<Map<String, Object>> recordsList = new ArrayList<>();
+		for (FluxTable table : tables) {
+			for (FluxRecord record : table.getRecords()) {
+				Map<String, Object> recordMap = new HashMap<>();
+				Map<String, Object> valuesMap = record.getValues();
+				recordMap.put("name", valuesMap.get("name"));
+				recordMap.put("value", valuesMap.get("value"));
+				Object timeSecond = (valuesMap.get("time"));
+				recordMap.put("time", timeSecond);
+				recordsList.add(recordMap);
+			}
+		}
+		//        System.out.println("recordsList = " + recordsList);
+		ObjectMapper mapper = new ObjectMapper();
+		// Time 순으로 정렬
+		Comparator<Map<String, Object>> timeNameComparator = new Comparator<>() {
+			private final NameComparator nameComparator = new NameComparator();
+
+			@Override
+			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+				// 시간 우선순위로 정렬
+				int timeComparison = ((Comparable)o1.get("time")).compareTo(o2.get("time"));
+				if (timeComparison != 0) {
+					return timeComparison;
+				}
+				// 시간이 같은 경우 이름으로 정렬
+				String name1 = (String)o1.get("name");
+				String name2 = (String)o2.get("name");
+				return nameComparator.compare(name1, name2);
+			}
+		};
+		// recordsList를 정렬
+		recordsList.sort(timeNameComparator);
+		return mapper.writeValueAsString(recordsList);
+	}
+
+	static class NameComparator implements Comparator<String> {
+		@Override
+		public int compare(String s1, String s2) {
+			int len1 = s1.length(), len2 = s2.length();
+			int i = 0, j = 0;
+			while (i < len1 && j < len2) {
+				// 숫자가 아닌 문자를 건너뜁니다.
+				while (i < len1 && !Character.isDigit(s1.charAt(i)))
+					i++;
+				while (j < len2 && !Character.isDigit(s2.charAt(j)))
+					j++;
+				if (i == len1 || j == len2) {
+					break;
+				}
+				int num1 = 0, num2 = 0;
+				// 뒤에 붙은 숫자를 읽어옵니다.
+				while (i < len1 && Character.isDigit(s1.charAt(i))) {
+					num1 = num1 * 10 + (s1.charAt(i) - '0');
+					i++;
+				}
+				while (j < len2 && Character.isDigit(s2.charAt(j))) {
+					num2 = num2 * 10 + (s2.charAt(j) - '0');
+					j++;
+				}
+				if (num1 != num2) {
+					return num1 - num2;
+				}
+			}
+			return s1.compareTo(s2);
+		}
+	}
+
+	public CompletableFuture<Map<String, Object>> getSensorAveragesAsync(String client, List<String> sensors) {
+		return CompletableFuture.supplyAsync(() -> {
+			Map<String, Object> sensorAverages = new HashMap<>();
+			for (String sensor : sensors) {
+				String query = "from(bucket: \"week\")" +
+					"  |> range(start: -" + TimeInfo.MAIN_MACHINE_START + ")" +
+					"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+					"  |> filter(fn: (r) => r[\"big_name\"] == \"" + sensor + "\")" +
+					"  |> last()" +
+					"  |> group(columns: [\"name\"])" +
+					"  |> last()";
+				List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+
+				if (!tables.isEmpty()) {
+					FluxRecord record = tables.get(0).getRecords().get(0);
+					if (record != null) {
+						double value = Double.parseDouble(record.getValueByKey("_value").toString());
+						sensorAverages.put(sensor, value);
+					} else {
+						System.out.println("N1o data for client: " + client + " sensor: " + sensor);
+					}
+				}
+			}
+			return sensorAverages;
+		});
+	}
+	//    @GetMapping("/machine/{date}/history")
+	//    @SendTo("/client/machine/history")
+	//    public String machineHistory(@PathVariable String data) throws Exception {
+	//        return null;
+	//    }
+
+	private void executeAndExtractData(String client, DataType sensorType, String timeStart, DataType metric, Map<String, Object> outMap) {
+		queryBuilder.append("from(bucket: \"week\")")
+			.append("|> range(start: -").append(timeStart).append(", stop: now())")
+			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
+			.append("|> group(columns: [\"name\"])")
+			.append("|> last()")
+			.append("|> map(fn: (r) => ({value:r._value,name:r.name}))");
+		String query = queryBuilder.toString();
+		queryBuilder.setLength(0);
+
+		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+		List<Map<String, Object>> recordsList = new ArrayList<>();
+		Map<String, Object> recordMap = new HashMap<>();
+		for (FluxTable table : tables) {
+			for (FluxRecord record : table.getRecords()) {
+				Map<String, Object> valuesMap = record.getValues();
+				recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
+			}
+			recordsList.add(new HashMap<>(recordMap));
+			recordMap.clear();
+		}
+		outMap.put(metric.toString(), recordsList);
+	}
+
+	public void executeAndExtractMinMaxData(String client, DataType sensorType, String startTime, DataType outMapKey,
+		InfluxDBClient influxDBClient, Map<String, Object> outMap) {
+		queryBuilder.append("max_values = from(bucket: \"week\")")
+			.append("|> range(start: -").append(startTime).append(", stop: now())")
+			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
+			.append("|> group(columns: [\"generate_time\"])")
+			.append("|> max(column: \"_value\")")
+			.append("|> rename(columns: {_value: \"max_value\"})")
+
+			.append("min_values = from(bucket: \"week\")")
+			.append("|> range(start: -").append(startTime).append(", stop: now())")
+			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
+			.append("|> group(columns: [\"generate_time\"])")
+			.append("|> min(column: \"_value\")")
+			.append("|> rename(columns: {_value: \"min_value\"})")
+
+			.append("join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])")
+			.append("|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))")
+			.append("|> limit(n: 10)");
+		String query = queryBuilder.toString();
+		queryBuilder.setLength(0);
+
+		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+
+		List<Map<String, Object>> recordsList = new ArrayList<>();
+		for (FluxTable table : tables) {
+			for (FluxRecord record : table.getRecords()) {
+				Map<String, Object> recordMap = new HashMap<>();
+				Map<String, Object> valuesMap = record.getValues();
+				recordMap.put("time", valuesMap.get("time"));
+				recordMap.put("max_value", valuesMap.get("max_value"));
+				recordMap.put("min_value", valuesMap.get("min_value"));
+				recordsList.add(recordMap);
+			}
+		}
+		outMap.put(outMapKey.toString(), recordsList);
+	}
+
+	private String buildQuery(String client, DataType bigName, String startTime) {
+		queryBuilder.append("from(bucket: \"week\")")
+			.append("|> range(start: -").append(startTime).append(", stop: now())")
+			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(bigName).append("\")")
+			.append("|> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) ")
+			.append("|> limit(n:10)");
+		String query = queryBuilder.toString();
+		log.debug(query);
+
+		queryBuilder.setLength(0);
+		return query;
+	}
+
 }

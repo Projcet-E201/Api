@@ -1,6 +1,6 @@
 package com.example.data.util.constants;
 
-public class TimeInfo {
+public class      TimeInfo {
     //SENSOR
     public static final String MACHINE_SENSOR_VELOCITY_START = "5m";
     public static final String MACHINE_SENSOR_LOAD_START = "5m";
