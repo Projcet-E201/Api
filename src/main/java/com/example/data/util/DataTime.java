@@ -1,4 +1,4 @@
-package com.example.data.domain;
+package com.example.data.util;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

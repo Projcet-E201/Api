@@ -30,9 +30,9 @@ public class InfluxDBConfig {
     @Bean
     public InfluxDBClient influxDBClient() {
         OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
-                .connectTimeout(40, TimeUnit.SECONDS)       // 모두 default 10
-                .readTimeout(20, TimeUnit.SECONDS)
-                .writeTimeout(20, TimeUnit.SECONDS);
+                .connectTimeout(30, TimeUnit.SECONDS)       // 모두 default 10
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS);
 
         InfluxDBClientOptions options = InfluxDBClientOptions.builder()
                 .url(url)
@@ -43,4 +43,3 @@ public class InfluxDBConfig {
         return InfluxDBClientFactory.create(options);
     }
 }
-
