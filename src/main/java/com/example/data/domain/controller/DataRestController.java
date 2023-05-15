@@ -11,6 +11,11 @@ import com.influxdb.query.FluxTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -238,6 +243,40 @@ public class DataRestController {
 		return "[" + objectMapper.writeValueAsString(outMap) + "]";
 	}
 
+	@GetMapping("/machine/history")
+	public String machineHistory(String data) throws Exception {
+		String[] dataList = data.split(" ");
+
+		// data_type, start, end
+		StringBuilder queryBuilder = new StringBuilder();
+
+		// 현재 시간 가져오기
+		LocalDateTime nowTime = LocalDateTime.now();
+		ZonedDateTime nowTimeUTC = nowTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("UTC"));
+
+		// UTC 시간 값을 LocalDateTime으로 변환
+		LocalDateTime startDateTime = LocalDateTime.parse(dataList[1], DateTimeFormatter.ISO_DATE_TIME);
+		LocalDateTime endDateTime = LocalDateTime.parse(dataList[2], DateTimeFormatter.ISO_DATE_TIME);
+
+		// 시간 차이 계산
+		Duration startDifference = Duration.between(startDateTime, nowTimeUTC);
+		Duration endDifference = Duration.between(endDateTime, nowTimeUTC);
+
+		// 시간 간격 계산
+		Duration interval = Duration.between(startDateTime, endDateTime);
+		long totalMinutes = interval.toMinutes();
+		long desiredInterval = totalMinutes / 10; // 10개의 데이터로 균등하게 나누기
+
+		queryBuilder.append("from(bucket: \"week\")")
+				.append("|> range(start: -").append(startDifference).append(", stop: -").append(endDifference).append(")")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(dataList[0]).append("\")")
+				.append("|> window(every: ").append(desiredInterval).append("m)") // 분 단위로 간격 설정
+				.append("limit(n: 10)");
+		return null;
+		// 나머지 코드 작성...
+	}
+
+
 	private String queryClientToJson(String query) throws JsonProcessingException {
 		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
 		//        System.out.println("tables = " + tables);
@@ -422,5 +461,7 @@ public class DataRestController {
 		queryBuilder.setLength(0);
 		return query;
 	}
+
+
 
 }
