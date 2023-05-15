@@ -23,8 +23,6 @@ public class DataRestController {
 	@Autowired
 	private InfluxDBClient influxDBClient;
 
-	private StringBuilder queryBuilder = new StringBuilder(500);
-
 	@GetMapping("/machine/{data}/sensor")
 	public String machineSensor(@PathVariable String data) throws Exception {
 
@@ -222,7 +220,6 @@ public class DataRestController {
 	@GetMapping("/main/machine")
 	public String MainMachine() throws Exception {
 		// 기기 각각의 최신값의 평균을 구하는 코드
-		System.out.println("start data = ");
 		Map<String, Object> outMap = new HashMap<>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM",
@@ -349,6 +346,7 @@ public class DataRestController {
 	//    }
 
 	private void executeAndExtractData(String client, DataType sensorType, String timeStart, DataType metric, Map<String, Object> outMap) {
+		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("from(bucket: \"week\")")
 			.append("|> range(start: -").append(timeStart).append(", stop: now())")
 			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
@@ -375,6 +373,7 @@ public class DataRestController {
 
 	public void executeAndExtractMinMaxData(String client, DataType sensorType, String startTime, DataType outMapKey,
 		InfluxDBClient influxDBClient, Map<String, Object> outMap) {
+		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("max_values = from(bucket: \"week\")")
 			.append("|> range(start: -").append(startTime).append(", stop: now())")
 			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
@@ -414,6 +413,7 @@ public class DataRestController {
 	}
 
 	private String buildQuery(String client, DataType bigName, String startTime) {
+		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("from(bucket: \"week\")")
 			.append("|> range(start: -").append(startTime).append(", stop: now())")
 			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")

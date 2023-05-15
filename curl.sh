@@ -1,5 +1,3 @@
-#!/bin/bash
-
 curl http://localhost:8091/api/machine/1/sensor
 
 curl http://localhost:8091/api/machine/1/state
