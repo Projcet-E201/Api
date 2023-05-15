@@ -32,11 +32,6 @@ public class DataRestController {
 		List<Map<String, Object>> outList = new ArrayList<>();
 		Map<String, Object> outMap = new HashMap<>();
 
-		String query = "";
-		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-		List<Map<String, Object>> recordsList = new ArrayList<>();
-		Map<String, Object> recordMap = new HashMap<>();
-
 		// VELOCITY
 		executeAndExtractData(client, DataType.VELOCITY, TimeInfo.MACHINE_SENSOR_VELOCITY_START, DataType.VELOCITY, outMap);
 
@@ -68,7 +63,7 @@ public class DataRestController {
 
 
 		// air_in_kpa
-		query = "from(bucket: \"week\")" +
+		String query = "from(bucket: \"week\")" +
 			"|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_IN_KPA_START + ", stop: now())" +
 			"|> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
 			"|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
@@ -76,8 +71,9 @@ public class DataRestController {
 			"|> mean(column: \"_value\")" +
 			"|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
 			"|> limit(n:10)";
-		tables = influxDBClient.getQueryApi().query(query, "semse");
-		recordsList = new ArrayList<>();
+		List<FluxTable>  tables = influxDBClient.getQueryApi().query(query, "semse");
+		List<Map<String, Object>> recordsList = new ArrayList<>();
+		Map<String, Object> recordMap = new HashMap<>();
 		for (FluxTable table : tables) {
 			for (FluxRecord record : table.getRecords()) {
 				recordMap = new HashMap<>();
