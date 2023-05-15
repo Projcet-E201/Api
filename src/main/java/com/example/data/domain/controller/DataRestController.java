@@ -361,7 +361,7 @@ public class DataRestController {
 				Map<String, Object> valuesMap = record.getValues();
 				recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
 			}
-			recordsList.add(new HashMap<>(recordMap));
+			recordsList.add(recordMap);
 			recordMap.clear();
 		}
 		outMap.put(metric.toString(), recordsList);
