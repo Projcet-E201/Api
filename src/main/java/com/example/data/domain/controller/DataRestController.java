@@ -248,9 +248,8 @@ public class DataRestController {
 	public String machineHistory(@PathVariable String machine_number,@PathVariable String sensor, @PathVariable String sensor_id ,@PathVariable String start_time, @PathVariable String end_time) throws Exception {
 		String sensorUp = sensor.toUpperCase();
 		String sensorLa = sensorUp + "sensor_id";
+		String sensorDo = sensor + "sensor_id";
 		String machine = "MACHINE" + machine_number;
-		// data_type, start, end
-		StringBuilder queryBuilder = new StringBuilder();
 
 		// 현재 시간 가져오기
 		LocalDateTime nowTime = LocalDateTime.now();
@@ -269,15 +268,35 @@ public class DataRestController {
 		long totalMinutes = interval.toMinutes();
 		long desiredInterval = totalMinutes / 10; // 10개의 데이터로 균등하게 나누기
 
-		queryBuilder.append("from(bucket: \"week\")")
-				.append("|> range(start: -").append(startDifference).append(", stop: -").append(endDifference).append(")")
-				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(machine).append("\")")
-				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(sensorLa).append("\")")
-				.append("|> window(every: ").append(desiredInterval).append("m)") // 분 단위로 간격 설정
-				.append("limit(n: 10)");
-		return null;
-		// 나머지 코드 작성...
+		String query = "from(bucket: \"week\")" +
+				"|> range(start: -" + startDifference + ", stop: -" + endDifference + ")" +
+				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + machine + "\")" +
+				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + sensorLa + "\")" +
+				"|> window(every: " + desiredInterval + "m)" + // 분 단위로 간격 설정
+				"|> limit(n: 10)" +
+				"|> map(fn: (r) => ({value:r._value,time:r.generate_time}))";
+		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+		Map<String, Object> result = new HashMap<>();
+		List<Map<String, Object>> dataList = new ArrayList<>();
+		result.put("id", sensorDo);
+		result.put("data", dataList);
+
+		for (FluxTable table : tables) {
+			for (FluxRecord record : table.getRecords()) {
+				Map<String, Object> dataPoint = new HashMap<>();
+				dataPoint.put("x", Objects.requireNonNull(record.getTime()).toString());
+				dataPoint.put("y", record.getValue());
+				dataList.add(dataPoint);
+			}
+		}
+
+		// Time 순으로 정렬
+		dataList.sort(Comparator.comparing(o -> (String) o.get("x")));
+
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(result);
 	}
+
 
 
 	private String queryClientToJson(String query) throws JsonProcessingException {
