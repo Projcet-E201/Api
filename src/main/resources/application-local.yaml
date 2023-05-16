@@ -6,7 +6,7 @@ spring:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://localhost:3306/data?useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&serverTimezone=Asia/Seoul
   influxdb:
-    url: http://52.79.42.131:8086
+    url: http://43.201.62.187:8086
 
   jpa:
     hibernate:

@@ -244,10 +244,11 @@ public class DataRestController {
 		return "[" + objectMapper.writeValueAsString(outMap) + "]";
 	}
 
-	@GetMapping("/machine/history")
-	public String machineHistory(String data) throws Exception {
-		String[] dataList = data.split(" ");
-
+	@GetMapping("/machine/{machine_number}/history/{sensor}/{sensor_id}/{start_time}/{end_time}")
+	public String machineHistory(@PathVariable String machine_number,@PathVariable String sensor, @PathVariable String sensor_id ,@PathVariable String start_time, @PathVariable String end_time) throws Exception {
+		String sensorUp = sensor.toUpperCase();
+		String sensorLa = sensorUp + "sensor_id";
+		String machine = "MACHINE" + machine_number;
 		// data_type, start, end
 		StringBuilder queryBuilder = new StringBuilder();
 
@@ -256,8 +257,8 @@ public class DataRestController {
 		ZonedDateTime nowTimeUTC = nowTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("UTC"));
 
 		// UTC 시간 값을 LocalDateTime으로 변환
-		LocalDateTime startDateTime = LocalDateTime.parse(dataList[1], DateTimeFormatter.ISO_DATE_TIME);
-		LocalDateTime endDateTime = LocalDateTime.parse(dataList[2], DateTimeFormatter.ISO_DATE_TIME);
+		LocalDateTime startDateTime = LocalDateTime.parse(start_time, DateTimeFormatter.ISO_DATE_TIME);
+		LocalDateTime endDateTime = LocalDateTime.parse(end_time, DateTimeFormatter.ISO_DATE_TIME);
 
 		// 시간 차이 계산
 		Duration startDifference = Duration.between(startDateTime, nowTimeUTC);
@@ -270,7 +271,8 @@ public class DataRestController {
 
 		queryBuilder.append("from(bucket: \"week\")")
 				.append("|> range(start: -").append(startDifference).append(", stop: -").append(endDifference).append(")")
-				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(dataList[0]).append("\")")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(machine).append("\")")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(sensorLa).append("\")")
 				.append("|> window(every: ").append(desiredInterval).append("m)") // 분 단위로 간격 설정
 				.append("limit(n: 10)");
 		return null;
@@ -375,11 +377,6 @@ public class DataRestController {
 			return sensorAverages;
 		});
 	}
-	//    @GetMapping("/machine/{date}/history")
-	//    @SendTo("/client/machine/history")
-	//    public String machineHistory(@PathVariable String data) throws Exception {
-	//        return null;
-	//    }
 
 	private void executeAndExtractData(String client, DataType sensorType, String timeStart, DataType metric, Map<String, Object> outMap) {
 		StringBuilder queryBuilder = new StringBuilder();

@@ -16,12 +16,6 @@ public class InfluxDBConfig {
     @Value("${spring.influxdb.url}")
     private String url;
 
-    @Value("${spring.influxdb.username}")
-    private String username;
-
-    @Value("${spring.influxdb.password}")
-    private String password;
-
     @Value("${spring.influxdb.token}")
     private String token;
 
