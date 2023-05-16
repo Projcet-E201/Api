@@ -268,8 +268,11 @@ public class DataRestController {
 		long totalMinutes = interval.toMinutes();
 		long desiredInterval = totalMinutes / 10; // 10개의 데이터로 균등하게 나누기
 
+		String startDifferenceInfluxDB = "-" + startDifference.toMinutesPart() + "m" + startDifference.toSecondsPart() + "s";
+		String endDifferenceInfluxDB = "-" + endDifference.toMinutesPart() + "m" + endDifference.toSecondsPart() + "s";
+
 		String query = "from(bucket: \"week\")" +
-				"|> range(start: -" + startDifference + ", stop: -" + endDifference + ")" +
+				"|> range(start: -" + startDifferenceInfluxDB + ", stop: -" + endDifferenceInfluxDB + ")" +
 				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + machine + "\")" +
 				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + sensorLa + "\")" +
 				"|> window(every: " + desiredInterval + "m)" + // 분 단위로 간격 설정
