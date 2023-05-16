@@ -29,6 +29,8 @@ public class DataRestController {
 
 	private final InfluxDBClient influxDBClient;
 
+	private Map<String, Integer> rule = new HashMap<>();
+
 	@GetMapping("/machine/{data}/sensor")
 	public String machineSensor(@PathVariable String data) throws Exception {
 
@@ -374,6 +376,7 @@ public class DataRestController {
 
 	public CompletableFuture<Map<String, Object>> getSensorAveragesAsync(String client, List<String> sensors) {
 		return CompletableFuture.supplyAsync(() -> {
+			int score = 0;
 			Map<String, Object> sensorAverages = new HashMap<>();
 			for (String sensor : sensors) {
 				String query = "from(bucket: \"week\")" +
