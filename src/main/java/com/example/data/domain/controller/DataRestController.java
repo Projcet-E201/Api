@@ -423,6 +423,7 @@ public class DataRestController {
 				recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
 			}
 			recordsList.add(recordMap);
+			recordMap = new HashMap<>();
 		}
 		outMap.put(metric.toString(), recordsList);
 	}
