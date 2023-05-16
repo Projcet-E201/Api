@@ -258,34 +258,34 @@ public class DataRestController {
 	@GetMapping("/machine/{machine_number}/history/{sensor}/{sensor_id}/{start_time}/{end_time}")
 	public String machineHistory(@PathVariable String machine_number,@PathVariable String sensor, @PathVariable String sensor_id ,@PathVariable String start_time, @PathVariable String end_time) throws Exception {
 		String sensorUp = sensor.toUpperCase();
-		String sensorLa = sensorUp + "sensor_id";
-		String sensorDo = sensor + "sensor_id";
-		String machine = "MACHINE" + machine_number;
+		String sensorLa = sensorUp + sensor_id;
+		String sensorDo = sensor + sensor_id;
+		String machine = "CLIENT" + machine_number;
 
 		// 현재 시간 가져오기
 		LocalDateTime nowTime = LocalDateTime.now();
 		ZonedDateTime nowTimeUTC = nowTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("UTC"));
 
-		// UTC 시간 값을 LocalDateTime으로 변환
-		LocalDateTime startDateTime = LocalDateTime.parse(start_time, DateTimeFormatter.ISO_DATE_TIME);
-		LocalDateTime endDateTime = LocalDateTime.parse(end_time, DateTimeFormatter.ISO_DATE_TIME);
+		// UTC 시간 값을 ZonedDateTime으로 변환
+		ZonedDateTime startDateTime = ZonedDateTime.parse(start_time, DateTimeFormatter.ISO_DATE_TIME);
+		ZonedDateTime endDateTime = ZonedDateTime.parse(end_time, DateTimeFormatter.ISO_DATE_TIME);
 
 		// 시간 차이 계산
-		Duration startDifference = Duration.between(startDateTime, nowTimeUTC);
-		Duration endDifference = Duration.between(endDateTime, nowTimeUTC);
+		Duration startDifference = Duration.between(nowTimeUTC, startDateTime).abs();
+		Duration endDifference = Duration.between(nowTimeUTC, endDateTime).abs();
 
 		// 시간 간격 계산
-		Duration interval = Duration.between(startDateTime, endDateTime);
-		long totalMinutes = interval.toMinutes();
-		long desiredInterval = totalMinutes / 10; // 10개의 데이터로 균등하게 나누기
+		Duration interval = Duration.between(startDateTime, endDateTime).abs();
+		long totalSeconds = interval.toSeconds();
+		long desiredInterval = totalSeconds / 10; // 10개의 데이터로 균등하게 나누기
 
-		String startDifferenceInfluxDB = "-" + startDifference.toMinutesPart() + "m" + startDifference.toSecondsPart() + "s";
-		String endDifferenceInfluxDB = "-" + endDifference.toMinutesPart() + "m" + endDifference.toSecondsPart() + "s";
+		String startDifferenceInfluxDB = "-" + startDifference.toSeconds() + "s";
+		String endDifferenceInfluxDB = "-" + endDifference.toSeconds() + "s";
 
 		String query = "from(bucket: \"week\")" +
-				"|> range(start: -" + startDifferenceInfluxDB + ", stop: -" + endDifferenceInfluxDB + ")" +
+				"|> range(start: " + startDifferenceInfluxDB + ", stop: " + endDifferenceInfluxDB + ")" +
 				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + machine + "\")" +
-				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + sensorLa + "\")" +
+				"|> filter(fn: (r) => r[\"name\"] == \"" + sensorLa + "\")" +
 				"|> window(every: " + desiredInterval + "m)" + // 분 단위로 간격 설정
 				"|> limit(n: 10)" +
 				"|> map(fn: (r) => ({value:r._value,time:r.generate_time}))";
@@ -294,18 +294,22 @@ public class DataRestController {
 		List<Map<String, Object>> dataList = new ArrayList<>();
 		result.put("id", sensorDo);
 		result.put("data", dataList);
-
+		int count = 0;
 		for (FluxTable table : tables) {
+
 			for (FluxRecord record : table.getRecords()) {
-				Map<String, Object> dataPoint = new HashMap<>();
-				dataPoint.put("x", Objects.requireNonNull(record.getTime()).toString());
-				dataPoint.put("y", record.getValue());
-				dataList.add(dataPoint);
+				if (count < 10) {
+					Map<String, Object> dataPoint = new HashMap<>();
+					Map<String, Object> valuesMap = record.getValues();
+
+					dataPoint.put("x", valuesMap.get("time").toString());
+					dataPoint.put("y", valuesMap.get("value").toString());
+					dataList.add(dataPoint);
+					count += 1;
+				}
 			}
 		}
-
-		// Time 순으로 정렬
-		dataList.sort(Comparator.comparing(o -> (String) o.get("x")));
+		System.out.println("dataList = " + dataList);
 
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(result);
