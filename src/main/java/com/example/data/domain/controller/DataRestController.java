@@ -53,30 +53,30 @@ public class DataRestController {
 
 		//AIR_OUT_KPA
 		executeAndExtractMinMaxData(client, DataType.AIR_OUT_MPA, TimeInfo.MACHINE_SENSOR_AIR_OUT_MPA_START, DataType.AIR_OUT_MPA,
-			influxDBClient, outMap);
+				influxDBClient, outMap);
 
 		//AIR_OUT_MPA
 		executeAndExtractMinMaxData(client, DataType.AIR_OUT_KPA, TimeInfo.MACHINE_SENSOR_AIR_OUT_KPA_START, DataType.AIR_OUT_KPA,
-			influxDBClient, outMap);
+				influxDBClient, outMap);
 
 		//VACUUM
 		executeAndExtractMinMaxData(client, DataType.VACUUM, TimeInfo.MACHINE_SENSOR_VACUUM_START, DataType.VACUUM, influxDBClient,
-			outMap);
+				outMap);
 
 		//MOTOR
 		executeAndExtractMinMaxData(client, DataType.MOTOR, TimeInfo.MACHINE_SENSOR_MOTOR_START, DataType.MOTOR, influxDBClient,
-			outMap);
+				outMap);
 
 
 		// air_in_kpa
 		String query = "from(bucket: \"week\")" +
-			"|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_IN_KPA_START + ", stop: now())" +
-			"|> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
-			"|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
-			"|> group(columns: [\"generate_time\"])" +
-			"|> mean(column: \"_value\")" +
-			"|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
-			"|> limit(n:10)";
+				"|> range(start: -" + TimeInfo.MACHINE_SENSOR_AIR_IN_KPA_START + ", stop: now())" +
+				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+				"|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
+				"|> group(columns: [\"generate_time\"])" +
+				"|> mean(column: \"_value\")" +
+				"|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
+				"|> limit(n:10)";
 		List<FluxTable>  tables = influxDBClient.getQueryApi().query(query, "semse");
 		List<Map<String, Object>> recordsList = new ArrayList<>();
 		Map<String, Object> recordMap = new HashMap<>();
@@ -101,11 +101,11 @@ public class DataRestController {
 	public List<Map<String, Object>> machineState(@PathVariable String data) {
 		String client = "CLIENT" + data;
 		String query = "from(bucket: \"day\")" +
-			"  |> range(start: -" + TimeInfo.MACHINE_STATE_START + ", stop: now())" +
-			"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
-			"  |> group(columns:[\"name\"]) " +
-			"  |> last()" +
-			"  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
+				"  |> range(start: -" + TimeInfo.MACHINE_STATE_START + ", stop: now())" +
+				"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+				"  |> group(columns:[\"name\"]) " +
+				"  |> last()" +
+				"  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
 		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
 		List<Map<String, Object>> recordsList = new ArrayList<>();
 		Map<String, Object> recordMap = null;
@@ -225,7 +225,7 @@ public class DataRestController {
 		Map<String, Object> outMap = new HashMap<>();
 		ObjectMapper objectMapper = new ObjectMapper();
 		List<String> sensors = Arrays.asList("MOTOR", "AIR_IN_KPA", "AIR_OUT_KPA", "AIR_OUT_MPA", "LOAD", "VACUUM",
-			"VELOCITY", "WATER", "ABRASION");
+				"VELOCITY", "WATER", "ABRASION");
 
 		List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
 
@@ -299,7 +299,6 @@ public class DataRestController {
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(result);
 	}
-
 
 
 	private String queryClientToJson(String query) throws JsonProcessingException {
@@ -378,12 +377,12 @@ public class DataRestController {
 			Map<String, Object> sensorAverages = new HashMap<>();
 			for (String sensor : sensors) {
 				String query = "from(bucket: \"week\")" +
-					"  |> range(start: -" + TimeInfo.MAIN_MACHINE_START + ")" +
-					"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
-					"  |> filter(fn: (r) => r[\"big_name\"] == \"" + sensor + "\")" +
-					"  |> last()" +
-					"  |> group(columns: [\"name\"])" +
-					"  |> last()";
+						"  |> range(start: -" + TimeInfo.MAIN_MACHINE_START + ")" +
+						"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+						"  |> filter(fn: (r) => r[\"big_name\"] == \"" + sensor + "\")" +
+						"  |> last()" +
+						"  |> group(columns: [\"name\"])" +
+						"  |> last()";
 				List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
 
 				if (!tables.isEmpty()) {
@@ -403,12 +402,12 @@ public class DataRestController {
 	private void executeAndExtractData(String client, DataType sensorType, String timeStart, DataType metric, Map<String, Object> outMap) {
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("from(bucket: \"week\")")
-			.append("|> range(start: -").append(timeStart).append(", stop: now())")
-			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
-			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
-			.append("|> group(columns: [\"name\"])")
-			.append("|> last()")
-			.append("|> map(fn: (r) => ({value:r._value,name:r.name}))");
+				.append("|> range(start: -").append(timeStart).append(", stop: now())")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+				.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
+				.append("|> group(columns: [\"name\"])")
+				.append("|> last()")
+				.append("|> map(fn: (r) => ({value:r._value,name:r.name}))");
 		String query = queryBuilder.toString();
 		queryBuilder.setLength(0);
 
@@ -421,33 +420,32 @@ public class DataRestController {
 				recordMap.put(valuesMap.get("name").toString(), valuesMap.get("value"));
 			}
 			recordsList.add(recordMap);
-			recordMap.clear();
 		}
 		outMap.put(metric.toString(), recordsList);
 	}
 
 	public void executeAndExtractMinMaxData(String client, DataType sensorType, String startTime, DataType outMapKey,
-		InfluxDBClient influxDBClient, Map<String, Object> outMap) {
+											InfluxDBClient influxDBClient, Map<String, Object> outMap) {
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("max_values = from(bucket: \"week\")")
-			.append("|> range(start: -").append(startTime).append(", stop: now())")
-			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
-			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
-			.append("|> group(columns: [\"generate_time\"])")
-			.append("|> max(column: \"_value\")")
-			.append("|> rename(columns: {_value: \"max_value\"})")
+				.append("|> range(start: -").append(startTime).append(", stop: now())")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+				.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
+				.append("|> group(columns: [\"generate_time\"])")
+				.append("|> max(column: \"_value\")")
+				.append("|> rename(columns: {_value: \"max_value\"})")
 
-			.append("min_values = from(bucket: \"week\")")
-			.append("|> range(start: -").append(startTime).append(", stop: now())")
-			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
-			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
-			.append("|> group(columns: [\"generate_time\"])")
-			.append("|> min(column: \"_value\")")
-			.append("|> rename(columns: {_value: \"min_value\"})")
+				.append("min_values = from(bucket: \"week\")")
+				.append("|> range(start: -").append(startTime).append(", stop: now())")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+				.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
+				.append("|> group(columns: [\"generate_time\"])")
+				.append("|> min(column: \"_value\")")
+				.append("|> rename(columns: {_value: \"min_value\"})")
 
-			.append("join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])")
-			.append("|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))")
-			.append("|> limit(n: 10)");
+				.append("join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])")
+				.append("|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))")
+				.append("|> limit(n: 10)");
 		String query = queryBuilder.toString();
 		queryBuilder.setLength(0);
 
@@ -470,11 +468,11 @@ public class DataRestController {
 	private String buildQuery(String client, DataType bigName, String startTime) {
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append("from(bucket: \"week\")")
-			.append("|> range(start: -").append(startTime).append(", stop: now())")
-			.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
-			.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(bigName).append("\")")
-			.append("|> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) ")
-			.append("|> limit(n:10)");
+				.append("|> range(start: -").append(startTime).append(", stop: now())")
+				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
+				.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(bigName).append("\")")
+				.append("|> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) ")
+				.append("|> limit(n:10)");
 		String query = queryBuilder.toString();
 		log.debug(query);
 
