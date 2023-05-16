@@ -28,8 +28,17 @@ import lombok.extern.slf4j.Slf4j;
 public class DataRestController {
 
 	private final InfluxDBClient influxDBClient;
-
-	private Map<String, Integer> rule = new HashMap<>();
+	private static final Map<String, Integer> rule = new HashMap<String, Integer>() {{
+		put("MOTOR", 300);
+		put("VACUUM", 100);
+		put("AIR_IN_KPA", 900);
+		put("AIR_OUT_KPA", 900);
+		put("AIR_OUT_MPA", 1);
+		put("WATER", 4);
+		put("ABRASION", 40);
+		put("LOAD", 16);
+		put("VELOCITY", 50000);
+	}};
 
 	@GetMapping("/machine/{data}/sensor")
 	public String machineSensor(@PathVariable String data) throws Exception {
@@ -376,7 +385,7 @@ public class DataRestController {
 
 	public CompletableFuture<Map<String, Object>> getSensorAveragesAsync(String client, List<String> sensors) {
 		return CompletableFuture.supplyAsync(() -> {
-			int score = 0;
+			Double score = 0.0;
 			Map<String, Object> sensorAverages = new HashMap<>();
 			for (String sensor : sensors) {
 				String query = "from(bucket: \"week\")" +
@@ -386,6 +395,7 @@ public class DataRestController {
 						"  |> last()" +
 						"  |> group(columns: [\"name\"])" +
 						"  |> last()";
+				int divideNo = rule.get(sensor);
 				List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
 
 				if (!tables.isEmpty()) {
@@ -393,11 +403,13 @@ public class DataRestController {
 					if (record != null) {
 						double value = Double.parseDouble(record.getValueByKey("_value").toString());
 						sensorAverages.put(sensor, value);
+						score += (value/divideNo);
 					} else {
-						System.out.println("N1o data for client: " + client + " sensor: " + sensor);
+						log.info("N1o data for client: " + client + " sensor: " + sensor);
 					}
 				}
 			}
+			sensorAverages.put("score", score/9*100);
 			return sensorAverages;
 		});
 	}
