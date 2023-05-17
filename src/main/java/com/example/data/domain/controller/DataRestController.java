@@ -413,6 +413,7 @@ public class DataRestController {
 						DecimalFormat df = new DecimalFormat("#.##"); // 소수점 두 번째 자리까지 포맷 정의
 						value = Double.parseDouble(df.format(value)); // 포맷 적용
 						score += (value/divideNo);
+						sensorAverages.put(sensor, value);
 					} else {
 						log.info("N1o data for client: " + client + " sensor: " + sensor);
 					}
