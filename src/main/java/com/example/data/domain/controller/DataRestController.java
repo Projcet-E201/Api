@@ -258,6 +258,16 @@ public class DataRestController {
 
 	@GetMapping("/machine/{machine_number}/history/{sensor}/{sensor_id}/{start_time}/{end_time}")
 	public String machineHistory(@PathVariable String machine_number,@PathVariable String sensor, @PathVariable String sensor_id ,@PathVariable String start_time, @PathVariable String end_time) throws Exception {
+		if (Objects.equals(sensor, "air-in")) {
+			sensor = "air_in_kpa";
+		} else if (Objects.equals(sensor, "air-out-kpa")) {
+			sensor = "air_out_kpa";
+		} else if (Objects.equals(sensor, "air-out-mpa")) {
+			sensor = "air_out_mpa";
+		} else if (Objects.equals(sensor, "rpm")) {
+			sensor = "velocity";
+		}
+
 		String sensorUp = sensor.toUpperCase();
 		String sensorLa = sensorUp + sensor_id;
 		String sensorDo = sensor + sensor_id;
