@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -406,14 +407,15 @@ public class DataRestController {
 					FluxRecord record = tables.get(0).getRecords().get(0);
 					if (record != null) {
 						double value = Double.parseDouble(record.getValueByKey("_value").toString());
-						sensorAverages.put(sensor, value);
+						DecimalFormat df = new DecimalFormat("#.##"); // 소수점 두 번째 자리까지 포맷 정의
+						value = Double.parseDouble(df.format(value)); // 포맷 적용
 						score += (value/divideNo);
 					} else {
 						log.info("N1o data for client: " + client + " sensor: " + sensor);
 					}
 				}
 			}
-			sensorAverages.put("score", score/9*100);
+			sensorAverages.put("SCORE", (int) Math.round(score/9*100));
 			return sensorAverages;
 		});
 	}
