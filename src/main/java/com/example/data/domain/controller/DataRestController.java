@@ -278,7 +278,7 @@ public class DataRestController {
 		// 시간 간격 계산
 		Duration interval = Duration.between(startDateTime, endDateTime).abs();
 		long totalSeconds = interval.toSeconds();
-		long desiredInterval = totalSeconds / 11; // 10개의 데이터로 균등하게 나누기
+		long desiredInterval = totalSeconds / 10; // 시간 간격을 10개로 나눔
 
 		String startDifferenceInfluxDB = "-" + startDifference.toSeconds() + "s";
 		String endDifferenceInfluxDB = "-" + endDifference.toSeconds() + "s";
@@ -287,9 +287,12 @@ public class DataRestController {
 				"|> range(start: " + startDifferenceInfluxDB + ", stop: " + endDifferenceInfluxDB + ")" +
 				"|> filter(fn: (r) => r[\"_measurement\"] == \"" + machine + "\")" +
 				"|> filter(fn: (r) => r[\"name\"] == \"" + sensorLa + "\")" +
-				"|> window(every: " + desiredInterval + "m)" + // 분 단위로 간격 설정
+				"|> window(every: " + desiredInterval + "s)" + // 시간 간격 설정
 				"|> last()" +
+				"|> limit(n: 10)" + // 데이터 개수를 10개로 제한
 				"|> map(fn: (r) => ({value:r._value,time:r.generate_time}))";
+
+		// 쿼리 실행 및 결과 처리
 		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
 		Map<String, Object> result = new HashMap<>();
 		List<Map<String, Object>> dataList = new ArrayList<>();
