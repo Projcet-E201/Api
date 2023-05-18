@@ -409,7 +409,7 @@ public class DataRestController {
 
 	public CompletableFuture<Map<String, Object>> getSensorAveragesAsync(String client, List<String> sensors) {
 		return CompletableFuture.supplyAsync(() -> {
-			Double score = 0.0;
+			Double score = 15.0;
 			Map<String, Object> sensorAverages = new HashMap<>();
 			for (String sensor : sensors) {
 				String query = "from(bucket: \"week\")" +
@@ -435,7 +435,13 @@ public class DataRestController {
 					}
 				}
 			}
-			sensorAverages.put("SCORE", (int) Math.round(score/9*100));
+			int scoreLa = (int) Math.round(score/9*100);
+			if (100 < scoreLa) {
+				scoreLa = 100;
+			} else if (scoreLa < 16) {
+				scoreLa = 0;
+			}
+			sensorAverages.put("SCORE", scoreLa);
 			return sensorAverages;
 		});
 	}
