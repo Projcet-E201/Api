@@ -1,8 +1,8 @@
 package com.example.data.util.constants;
 
-public class      TimeInfo {
+public class TimeInfo {
     // 배수
-    private static int multiple = 20;
+    private static int multiple = 40;
     //SENSOR
     public static final String MACHINE_SENSOR_VELOCITY_START = 25*multiple + "m";
     public static final String MACHINE_SENSOR_LOAD_START = 25*multiple + "m";
