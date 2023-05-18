@@ -308,18 +308,24 @@ public class DataRestController {
 		List<Map<String, Object>> dataList = new ArrayList<>();
 		result.put("id", sensorDo);
 		result.put("data", dataList);
-		int count = 0;
 		for (FluxTable table : tables) {
 
-			for (FluxRecord record : table.getRecords()) {
-				if (count < 10) {
+			List<FluxRecord> records = table.getRecords();
+			int size = records.size();
+			int increment = 1;
+			if (size>= 10) {
+				increment = size / 10;
+			}
+			for (int i = 0; i < size; i++) {
+				// 1/10배수번째 record만 처리
+				if (i % increment == 0) {
+					FluxRecord record = records.get(i);
 					Map<String, Object> dataPoint = new HashMap<>();
 					Map<String, Object> valuesMap = record.getValues();
 
 					dataPoint.put("x", valuesMap.get("time").toString());
 					dataPoint.put("y", valuesMap.get("value").toString());
 					dataList.add(dataPoint);
-					count += 1;
 				}
 			}
 		}
