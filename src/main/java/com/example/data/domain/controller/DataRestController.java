@@ -109,64 +109,64 @@ public class DataRestController {
 		return mapper.writeValueAsString(outList);
 	}
 
-	@GetMapping("/machine/{data}/state")
-	public List<Map<String, Object>> machineState(@PathVariable String data) {
-		String client = "CLIENT" + data;
-		String query = "from(bucket: \"day\")" +
-				"  |> range(start: -" + TimeInfo.MACHINE_STATE_START + ", stop: now())" +
-				"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
-				"  |> group(columns:[\"name\"]) " +
-				"  |> last()" +
-				"  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
-		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
-		List<Map<String, Object>> recordsList = new ArrayList<>();
-		Map<String, Object> recordMap = null;
-		String currentPrefix = "boolean";
-
-		for (FluxTable table : tables) {
-			for (FluxRecord record : table.getRecords()) {
-				Map<String, Object> valuesMap = record.getValues();
-				String name = valuesMap.get("name").toString();
-
-				// Name의 접두어를 가져옵니다.
-				String prefix = name.replaceAll("([a-zA-Z]*).*", "$1");
-
-				// Name의 접두어가 변경되었거나 recordMap이 아직 생성되지 않은 경우
-				if (recordMap == null || !prefix.equals(currentPrefix)) {
-
-					// 이전 recordMap에 대해 누락된 키를 추가합니다.
-					if (recordMap != null) {
-						for (int i = 1; i <= 10; i++) {
-							String key = currentPrefix + i;
-							recordMap.putIfAbsent(key, null);
-						}
-						recordsList.add(recordMap);
-					}
-					currentPrefix = prefix;
-					recordMap = new HashMap<>();
-				}
-				if (currentPrefix.equals("string")) {
-					Map<String, Object> innerValueMap = new HashMap<>();
-					innerValueMap.put("time", valuesMap.get("time"));
-					innerValueMap.put("value", valuesMap.get("value"));
-					recordMap.put(name, innerValueMap);
-				} else {
-					recordMap.put(name, valuesMap.get("value"));
-				}
-			}
-		}
-		// 마지막 recordMap에 대해 누락된 키를 추가합니다.
-		if (recordMap != null) {
-			for (int i = 1; i <= 10; i++) {
-				String key = currentPrefix + i;
-				recordMap.putIfAbsent(key, null);
-			}
-			recordsList.add(recordMap);
-			System.out.println("recordsList = " + recordsList);
-		}
-
-		return recordsList;
-	}
+//	@GetMapping("/machine/{data}/state")
+//	public List<Map<String, Object>> machineState(@PathVariable String data) {
+//		String client = "CLIENT" + data;
+//		String query = "from(bucket: \"day\")" +
+//				"  |> range(start: -" + TimeInfo.MACHINE_STATE_START + ", stop: now())" +
+//				"  |> filter(fn: (r) => r[\"_measurement\"] == \"" + client + "\")" +
+//				"  |> group(columns:[\"name\"]) " +
+//				"  |> last()" +
+//				"  |> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name}))";
+//		List<FluxTable> tables = influxDBClient.getQueryApi().query(query, "semse");
+//		List<Map<String, Object>> recordsList = new ArrayList<>();
+//		Map<String, Object> recordMap = null;
+//		String currentPrefix = "boolean";
+//
+//		for (FluxTable table : tables) {
+//			for (FluxRecord record : table.getRecords()) {
+//				Map<String, Object> valuesMap = record.getValues();
+//				String name = valuesMap.get("name").toString();
+//
+//				// Name의 접두어를 가져옵니다.
+//				String prefix = name.replaceAll("([a-zA-Z]*).*", "$1");
+//
+//				// Name의 접두어가 변경되었거나 recordMap이 아직 생성되지 않은 경우
+//				if (recordMap == null || !prefix.equals(currentPrefix)) {
+//
+//					// 이전 recordMap에 대해 누락된 키를 추가합니다.
+//					if (recordMap != null) {
+//						for (int i = 1; i <= 10; i++) {
+//							String key = currentPrefix + i;
+//							recordMap.putIfAbsent(key, null);
+//						}
+//						recordsList.add(recordMap);
+//					}
+//					currentPrefix = prefix;
+//					recordMap = new HashMap<>();
+//				}
+//				if (currentPrefix.equals("string")) {
+//					Map<String, Object> innerValueMap = new HashMap<>();
+//					innerValueMap.put("time", valuesMap.get("time"));
+//					innerValueMap.put("value", valuesMap.get("value"));
+//					recordMap.put(name, innerValueMap);
+//				} else {
+//					recordMap.put(name, valuesMap.get("value"));
+//				}
+//			}
+//		}
+//		// 마지막 recordMap에 대해 누락된 키를 추가합니다.
+//		if (recordMap != null) {
+//			for (int i = 1; i <= 10; i++) {
+//				String key = currentPrefix + i;
+//				recordMap.putIfAbsent(key, null);
+//			}
+//			recordsList.add(recordMap);
+//			System.out.println("recordsList = " + recordsList);
+//		}
+//
+//		return recordsList;
+//	}
 
 	@GetMapping("/machine/{data}/motor")
 	public String machineMotor(@PathVariable String data) throws Exception {
