@@ -318,7 +318,7 @@ public class DataRestController {
 			}
 			for (int i = 0; i < size; i++) {
 				// 1/10배수번째 record만 처리
-				if (i % increment == 0) {
+				if (i % increment == increment-1) {
 					FluxRecord record = records.get(i);
 					Map<String, Object> dataPoint = new HashMap<>();
 					Map<String, Object> valuesMap = record.getValues();
