@@ -220,14 +220,14 @@ public class DataRestController {
 	@GetMapping("/machine/{data}/load")
 	public String machineLoad(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
-		String query = buildQuery(client, DataType.LOAD, TimeInfo.MACHINE_ABRASION_START);
+		String query = buildQuery(client, DataType.LOAD, TimeInfo.MACHINE_LOAD_START);
 		return queryClientToJson(query);
 	}
 
 	@GetMapping("/machine/{data}/velocity")
 	public String machineVelocity(@PathVariable String data) throws Exception {
 		String client = "CLIENT" + data;
-		String query = buildQuery(client, DataType.VELOCITY, TimeInfo.MACHINE_ABRASION_START);
+		String query = buildQuery(client, DataType.VELOCITY, TimeInfo.MACHINE_VELOCITY_START);
 		return queryClientToJson(query);
 	}
 
