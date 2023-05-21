@@ -451,8 +451,8 @@ public class DataRestController {
 				scoreLa = 0;
 			} else if (scoreLa < 50) {
 				scoreLa -= 10;
-			} else if (scoreLa > 60 && scoreLa < 90) {
-				scoreLa += 6;
+			} else if (scoreLa > 50 && scoreLa < 80) {
+				scoreLa += 10;
 			}
 			sensorMaps.put("SCORE", scoreLa);
 			return sensorMaps;
