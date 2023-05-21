@@ -23,6 +23,8 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static java.lang.Math.abs;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -258,6 +260,7 @@ public class DataRestController {
 
 	@GetMapping("/machine/{machine_number}/history/{sensor}/{sensor_id}/{start_time}/{end_time}")
 	public String machineHistory(@PathVariable String machine_number,@PathVariable String sensor, @PathVariable String sensor_id ,@PathVariable String start_time, @PathVariable String end_time) throws Exception {
+		// 프론트와 name 차이
 		if (Objects.equals(sensor, "air-in")) {
 			sensor = "air_in_kpa";
 		} else if (Objects.equals(sensor, "air-out-kpa")) {
@@ -409,8 +412,8 @@ public class DataRestController {
 
 	public CompletableFuture<Map<String, Object>> getSensorAveragesAsync(String client, List<String> sensors) {
 		return CompletableFuture.supplyAsync(() -> {
-			Double score = 15.0;
-			Map<String, Object> sensorAverages = new HashMap<>();
+			double score = 0.0;
+			Map<String, Object> sensorMaps = new HashMap<>();
 			for (String sensor : sensors) {
 				String query = "from(bucket: \"week\")" +
 						"  |> range(start: -" + TimeInfo.MAIN_MACHINE_START + ")" +
@@ -428,21 +431,27 @@ public class DataRestController {
 						double value = Double.parseDouble(record.getValueByKey("_value").toString());
 						DecimalFormat df = new DecimalFormat("#.##"); // 소수점 두 번째 자리까지 포맷 정의
 						value = Double.parseDouble(df.format(value)); // 포맷 적용
-						score += (value/divideNo);
-						sensorAverages.put(sensor, value);
+						//70% 보다 낮으면 점수값을 높여 준다.
+						double score_s = abs(value/divideNo);
+						if (score_s <0.7) {
+							score_s += 0.1;
+						}
+						score += score_s;
+						sensorMaps.put(sensor, value);
 					} else {
 						log.info("N1o data for client: " + client + " sensor: " + sensor);
 					}
 				}
 			}
-			int scoreLa = (int) Math.round(score/9*100);
+			int scoreLa = 0; //초기화
+			scoreLa = (int) Math.round(score*100/9);
 			if (100 < scoreLa) {
 				scoreLa = 100;
-			} else if (scoreLa < 16) {
+			} else if (scoreLa < 20) {
 				scoreLa = 0;
 			}
-			sensorAverages.put("SCORE", scoreLa);
-			return sensorAverages;
+			sensorMaps.put("SCORE", scoreLa);
+			return sensorMaps;
 		});
 	}
 
