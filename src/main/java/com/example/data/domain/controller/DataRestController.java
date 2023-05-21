@@ -434,7 +434,7 @@ public class DataRestController {
 						//70% 보다 낮으면 점수값을 높여 준다.
 						double score_s = abs(value/divideNo);
 						if (score_s <0.7) {
-							score_s += 0.1;
+							score_s += 0.15;
 						}
 						score += score_s;
 						sensorMaps.put(sensor, value);
@@ -449,6 +449,10 @@ public class DataRestController {
 				scoreLa = 100;
 			} else if (scoreLa < 20) {
 				scoreLa = 0;
+			} else if (scoreLa < 50) {
+				scoreLa -= 10;
+			} else if (scoreLa > 60 && scoreLa < 90) {
+				scoreLa += 6;
 			}
 			sensorMaps.put("SCORE", scoreLa);
 			return sensorMaps;
