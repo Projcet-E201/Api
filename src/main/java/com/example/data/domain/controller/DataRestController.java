@@ -347,8 +347,15 @@ public class DataRestController {
 			for (FluxRecord record : table.getRecords()) {
 				Map<String, Object> recordMap = new HashMap<>();
 				Map<String, Object> valuesMap = record.getValues();
-				recordMap.put("name", valuesMap.get("name"));
-				recordMap.put("value", valuesMap.get("value"));
+				String name = valuesMap.get("name").toString();
+				recordMap.put("name", name);
+
+				if (name.startsWith("AIR_OUT_MPA")) {
+					DecimalFormat df = new DecimalFormat("#.00");
+					recordMap.put("value", df.format(valuesMap.get("value")));
+				} else {
+					recordMap.put("value", valuesMap.get("value"));
+				}
 				Object timeSecond = (valuesMap.get("time"));
 				recordMap.put("time", timeSecond);
 				recordsList.add(recordMap);
@@ -517,10 +524,18 @@ public class DataRestController {
 			for (FluxRecord record : table.getRecords()) {
 				Map<String, Object> recordMap = new HashMap<>();
 				Map<String, Object> valuesMap = record.getValues();
-				recordMap.put("time", valuesMap.get("time"));
-				recordMap.put("max_value", valuesMap.get("max_value"));
-				recordMap.put("min_value", valuesMap.get("min_value"));
-				recordsList.add(recordMap);
+				if (sensorType.equals(DataType.AIR_OUT_MPA)) {
+					recordMap.put("time", valuesMap.get("time"));
+					DecimalFormat df = new DecimalFormat("#.00");
+					recordMap.put("max_value", df.format(valuesMap.get("max_value")));
+					recordMap.put("min_value", df.format(valuesMap.get("min_value")));
+					recordsList.add(recordMap);
+				} else {
+					recordMap.put("time", valuesMap.get("time"));
+					recordMap.put("max_value", valuesMap.get("max_value"));
+					recordMap.put("min_value", valuesMap.get("min_value"));
+					recordsList.add(recordMap);
+				}
 			}
 		}
 		outMap.put(outMapKey.toString(), recordsList);
