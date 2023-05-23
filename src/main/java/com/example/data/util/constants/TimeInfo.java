@@ -26,5 +26,5 @@ public class TimeInfo {
     public static final String MACHINE_VELOCITY_START = 25*multiple + "m";
 
     // MAIN
-    public static final String MAIN_MACHINE_START = 6*multiple + "m";
+    public static final String MAIN_MACHINE_START = 4*multiple + "m";
 }
