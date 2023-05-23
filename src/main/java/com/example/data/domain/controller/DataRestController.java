@@ -89,8 +89,8 @@ public class DataRestController {
 				"|> filter(fn: (r) => r[\"big_name\"] == \"AIR_IN_KPA\")" +
 				"|> group(columns: [\"generate_time\"])" +
 				"|> mean(column: \"_value\")" +
-				"|> map(fn: (r) => ({value:r._value,time:r.generate_time }))" +
-				"|> limit(n:10)";
+				"|> map(fn: (r) => ({value:r._value,time:r.generate_time }))"; // +
+//				"|> limit(n:10)";
 		List<FluxTable>  tables = influxDBClient.getQueryApi().query(query, "semse");
 		List<Map<String, Object>> recordsList = new ArrayList<>();
 		Map<String, Object> recordMap = new HashMap<>();
@@ -473,7 +473,7 @@ public class DataRestController {
 				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
 				.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(sensorType).append("\")")
 				.append("|> group(columns: [\"name\"])")
-				.append("|> last()")
+//				.append("|> last()")
 				.append("|> map(fn: (r) => ({value:r._value,name:r.name}))");
 		String query = queryBuilder.toString();
 		queryBuilder.setLength(0);
@@ -547,8 +547,8 @@ public class DataRestController {
 				.append("|> range(start: -").append(startTime).append(", stop: now())")
 				.append("|> filter(fn: (r) => r[\"_measurement\"] == \"").append(client).append("\")")
 				.append("|> filter(fn: (r) => r[\"big_name\"] == \"").append(bigName).append("\")")
-				.append("|> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) ")
-				.append("|> limit(n:10)");
+				.append("|> map(fn: (r) => ({value:r._value,time:r.generate_time,name:r.name})) ");
+//				.append("|> limit(n:10)");
 		String query = queryBuilder.toString();
 		log.debug(query);
 
