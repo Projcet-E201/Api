@@ -512,8 +512,8 @@ public class DataRestController {
 				.append("|> rename(columns: {_value: \"min_value\"})")
 
 				.append("join(tables: {max: max_values, min: min_values},on: [\"generate_time\"])")
-				.append("|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))")
-				.append("|> limit(n: 10)");
+				.append("|> map(fn: (r) => ({time: r.generate_time,max_value: r.max_value,min_value: r.min_value}))");
+//				.append("|> limit(n: 10)");
 		String query = queryBuilder.toString();
 		queryBuilder.setLength(0);
 
