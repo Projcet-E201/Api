@@ -8,7 +8,7 @@ public class TimeInfo {
     public static final String MACHINE_SENSOR_LOAD_START = 25*multiple + "m";
     public static final String MACHINE_SENSOR_ABRASION_START = 25*multiple +"m";
     public static final String MACHINE_SENSOR_WATER_START = 2*multiple + "m";
-    public static final String MACHINE_SENSOR_AIR_OUT_MPA_START = 4*multiple + "m";
+    public static final String MACHINE_SENSOR_AIR_OUT_MPA_START = 1*multiple + "m";
     public static final String MACHINE_SENSOR_AIR_OUT_KPA_START = 10*multiple + "m";
     public static final String MACHINE_SENSOR_VACUUM_START = 4*multiple + "m";
     public static final String MACHINE_SENSOR_MOTOR_START = 2*multiple + "m";
@@ -18,7 +18,7 @@ public class TimeInfo {
     public static final String MACHINE_MOTOR_START = 2*multiple + "m";
     public static final String MACHINE_AIR_IN_KPA_START = 40*multiple + "s";
     public static final String MACHINE_AIR_OUT_KPA_START = 10*multiple + "m";
-    public static final String MACHINE_AIR_OUT_MPA_START = 4*multiple + "m";
+    public static final String MACHINE_AIR_OUT_MPA_START = 1*multiple + "m";
     public static final String MACHINE_VACUUM_START = 4*multiple + "m";
     public static final String MACHINE_WATER_START = 2*multiple + "m";
     public static final String MACHINE_ABRASION_START = 25*multiple + "m";
