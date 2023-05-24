@@ -243,14 +243,14 @@ public class DataRestController {
 
 		List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
 
-		for (int i = 1; i < 12; i++) {
+		for (int i = 1; i < 13; i++) {
 			String client = "CLIENT" + i;
 			futures.add(getSensorAveragesAsync(client, sensors));
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-		for (int i = 1; i < 12; i++) {
+		for (int i = 1; i < 13; i++) {
 			String client = "CLIENT" + i;
 			outMap.put(client, futures.get(i - 1).get());
 		}
